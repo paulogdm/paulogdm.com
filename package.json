@@ -1,0 +1,23 @@
+{
+  "name": "paulogdm.com",
+  "version": "1.0.0",
+  "description": "My personal site",
+  "main": "''",
+  "scripts": {
+    "start": "serve",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/paulogdm/paulogdm.com.git"
+  },
+  "author": "paulogdm",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/paulogdm/paulogdm.com/issues"
+  },
+  "homepage": "https://github.com/paulogdm/paulogdm.com#readme",
+  "dependencies": {
+    "serve": "^6.4.10"
+  }
+}
