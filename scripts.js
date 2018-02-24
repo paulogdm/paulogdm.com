@@ -4,7 +4,7 @@ const locale = {
     sections: {
       personal: {
         title: 'Personal',
-        description: 'A few things about me.',
+        subtitle: 'A few things about me.',
         pcmasterrace: `I've always had a PC at home. <br>
         I assembled my first PC in 2010. <br>
         PC Master Race FTW. <br>
@@ -40,7 +40,7 @@ const locale = {
       },
       professional: {
         title: 'Professional',
-        description: 'A collection of professional tools and skills.',
+        subtitle: 'A collection of professional tools and skills.',
         whoami: `I'm a developer "graduated" in Computer Sciente by ICMC from Universidade de Sao Paulo. <br>
         Most of the things I learned and used on a day-to-day basis at work was out of my own curiosity. <br>
         Motivation for me is a very important factor and my productivity depends a lot on it. <br>
@@ -73,7 +73,7 @@ const locale = {
       },
       toolbelt: {
         title: 'Favorite Apps',
-        description: 'List of programs that I really like to use!',
+        subtitle: 'List of programs that I really like to use!',
         gitkraken: `I used GIT under the CLI, but then I discovered Gitkraken.<br>
         Today I tell people about this amazing program for every developer that uses GIT and wants the job done. <br>
         And soon we will have <a target="_blank" href="https://www.gitkraken.com/glo" class="neon">Gitkraken Glo<a>!<br>
@@ -90,7 +90,7 @@ const locale = {
       },
       nodemodules: {
         title: 'Node.js Modules',
-        description: 'Bucket of libs that I enjoy.',
+        subtitle: 'Bucket of libs that I enjoy.',
         now: `I discovered "now" and Zeit's ecosystem by the end of 2017. <br>
         The ease of deploy and scalability is outstanding! <br>
         You can put an API to work with a URL in just 10 seconds. Check it out:<br>
@@ -130,7 +130,7 @@ const locale = {
     sections: {
       personal: {
         title: 'Pessoal',
-        description: 'Algumas coisas sobre mim.',
+        subtitle: 'Algumas coisas sobre mim.',
         pcmasterrace: `Sempre tive um PC em casa. <br>
         Eu montei meu primeiro PC em 2010. <br>
         PC Master Race FTW. <br>
@@ -166,7 +166,7 @@ const locale = {
       },
       professional: {
         title: 'Profissional',
-        description: 'Uma coleção de ferramentas e skills profissionais.',
+        subtitle: 'Uma coleção de ferramentas e skills profissionais.',
         whoami: `Eu sou um desenvolvedor "formado" em Ciências da Computação pelo ICMC da USP. <br>
         A maioria das coisas que aprendi e uso no dia a dia do trabalho foi por curiosidade própria. <br>
         Motivação pra mim é um fator muito importante e minha produtividade depende muito dela. <br>
@@ -199,7 +199,7 @@ const locale = {
       },
       toolbelt: {
         title: 'Programas Preferidos',
-        description: 'Lista de programas que eu gosto muito de usar!',
+        subtitle: 'Lista de programas que eu gosto muito de usar!',
         gitkraken: `Eu usava GIT no terminal, mas aí descobri Gitkraken. <br>
         Hoje eu indico esse programa fantástico para qualquer desenvolvedor que usa GIT e quer velocidade. <br>
         E em breve teremos <a target="_blank" href="https://www.gitkraken.com/glo" class="neon">Gitkraken Glo<a>! <br>
@@ -216,8 +216,8 @@ const locale = {
       },
       nodemodules: {
         title: 'Node.js Modules',
-        description: 'Bucket of libs that I enjoy.',
-        description: 'Algumas bilbiotecas que são essenciais em Node.js.',
+        subtitle: 'Bucket of libs that I enjoy.',
+        subtitle: 'Algumas bilbiotecas que são essenciais em Node.js.',
         now: `Descobri now.sh e o ecossistema Zeit no final de 2017. <br>
         A facilidade de deploy e escalabilidade é tenebrosa! <br>
         Você pode colocar uma API funcionando e com uma URL em apenas 10 segundos. Confere aí: <br>
@@ -252,6 +252,36 @@ const locale = {
     }
   }
 }
+
+Vue.component('badge-title', {
+  template: `
+    <div class="mt-4 mb-2">
+      <h2 class="animated fadeIn"> <i class="fas fa-caret-right"></i> {{title}}</h2>
+      <h6 class="animated fadeIn"><i class="animated fadeIn infinite">_</i> {{subtitle}}</h6>
+    </div>
+  `,
+  props: {
+    title: String,
+    subtitle: String
+  }
+})
+
+Vue.component('badge', {
+  template: `
+  <div class="badge text-center animated fadeInUp">
+    <div class="front">
+      <img class="img-fluid mx-auto d-block" v-bind:src="image">
+    </div>
+    <div class="back badge-text">
+      <h6 v-html="content"></h6>
+    </div>
+  </div>
+  `,
+  props: {
+    content: String,
+    image: String
+  }
+})
 
 const app = new Vue({
   el: '#mainpage',

@@ -8,7 +8,6 @@
   <meta name="keywords" content="paulogdm,paulo mitri, paulogdemitri">
   <meta name="author" content="paulogdm">
 
-  <link rel="icon" href="/assets/favicon-16.png" sizes="16x16" type="image/png">
   <link rel="icon" href="/assets/favicon-32.png" sizes="32x32" type="image/png">
   <link rel="icon" href="/assets/favicon-48.png" sizes="48x48" type="image/png">
   <link rel="icon" href="/assets/favicon-62.png" sizes="62x62" type="image/png">
@@ -80,211 +79,53 @@
       </div>
     </div>
 
-    <div class="mt-4"></div>
-    <h2 class="animated fadeIn"> <i class="fas fa-caret-right"></i> {{locale[selectedLocale].sections.personal.title}}</h2>
-    <h6 class="animated fadeIn"><i class="animated fadeIn infinite">_</i> {{locale[selectedLocale].sections.personal.description}}</h6>
-    <div class="mb-2"></div>
+    <badge-title v-bind:title="locale[selectedLocale].sections.personal.title" v-bind:subtitle="locale[selectedLocale].sections.personal.subtitle"></badge-title>
 
     <div class="badge-container">
-      <div class="badge text-center animated fadeInUp">
-        <div class="front">
-          <img class="img-fluid mx-auto d-block" src="/assets/crypto.png">
-        </div>
-        <div class="back badge-text">
-          <h6 v-html="locale[selectedLocale].sections.personal.crypto"></h6>
-        </div>
-      </div>
-      <div class="badge text-center animated fadeInUp">
-        <div class="front">
-          <img class="img-fluid mx-auto d-block" src="/assets/pcmasterrace.png">
-        </div>
-        <div class="back badge-text">
-          <h6 v-html="locale[selectedLocale].sections.personal.pcmasterrace"></h6>
-        </div>
-      </div>
-      <div class="badge text-center animated fadeInUp">
-        <div class="front">
-          <img class="img-fluid mx-auto d-block" src="/assets/owblack.png">
-        </div>
-        <div class="back badge-text">
-          <h6 v-html="locale[selectedLocale].sections.personal.overwatch"></h6>
-        </div>
-      </div>
-      <div class="badge text-center animated fadeInUp">
-        <div class="front">
-          <img class="img-fluid mx-auto d-block" src="/assets/headphone.png">
-        </div>
-        <div class="back badge-text">
-          <h6 v-html="locale[selectedLocale].sections.personal.headphones"></h6>
-        </div>
-      </div>
-      <div class="badge text-center animated fadeInUp">
-        <div class="front">
-          <img class="img-fluid mx-auto d-block" src="/assets/talk.png">
-        </div>
-        <div class="back badge-text">
-          <h6 v-html="locale[selectedLocale].sections.personal.talk"></h6>
-        </div>
-      </div>
-      <div class="badge text-center animated fadeInUp">
-        <div class="front">
-          <img class="img-fluid mx-auto d-block" src="/assets/icetea.png">
-        </div>
-        <div class="back badge-text">
-          <h6 v-html="locale[selectedLocale].sections.personal.icetea"></h6>
-        </div>
-      </div>
+      <badge image="/assets/crypto.png" v-bind:content="locale[selectedLocale].sections.personal.crypto"></badge>
+      <badge image="/assets/pcmasterrace.png" v-bind:content="locale[selectedLocale].sections.personal.pcmasterrace"></badge>
+      <badge image="/assets/owblack.png" v-bind:content="locale[selectedLocale].sections.personal.overwatch"></badge>
+      <badge image="/assets/headphone.png" v-bind:content="locale[selectedLocale].sections.personal.headphone"></badge>
+      <badge image="/assets/talk.png" v-bind:content="locale[selectedLocale].sections.personal.talk"></badge>
+      <badge image="/assets/icetea.png" v-bind:content="locale[selectedLocale].sections.personal.icetea"></badge>
     </div>
 
-    <div class="mt-4"></div>
-    <h2 class="animated fadeIn"> <i class="fas fa-caret-right"></i> {{locale[selectedLocale].sections.professional.title}}</h2>
-    <h6 class="animated fadeIn"><i class="animated fadeIn infinite">_</i> {{locale[selectedLocale].sections.professional.description}}</h6>
-    <div class="mb-2"></div>
+    <badge-title v-bind:title="locale[selectedLocale].sections.professional.title" v-bind:subtitle="locale[selectedLocale].sections.professional.subtitle"></badge-title>
 
     <div class="badge-container">
-      <div class="badge text-center animated fadeInUp">
-        <div class="front">
-          <img class="img-fluid mx-auto d-block" src="/assets/computer.png">
-        </div>
-        <div class="back badge-text">
-          <h6 v-html="locale[selectedLocale].sections.professional.whoami"></h6>
-        </div>
-      </div>
-      <div class="badge text-center animated fadeInUp">
-        <div class="front">
-          <img class="img-fluid mx-auto d-block" src="/assets/js.png">
-        </div>
-        <div class="back badge-text">
-          <h6 v-html="locale[selectedLocale].sections.professional.js"></h6>
-        </div>
-      </div>
-      <div class="badge text-center animated fadeInUp">
-        <div class="front">
-          <img class="img-fluid mx-auto d-block" src="/assets/python.png">
-        </div>
-        <div class="back badge-text">
-          <h6 v-html="locale[selectedLocale].sections.professional.python"></h6>
-        </div>
-      </div>
-      <div class="badge text-center animated fadeInUp">
-        <div class="front">
-          <img class="img-fluid mx-auto d-block" src="/assets/solidity.png">
-        </div>
-        <div class="back badge-text">
-          <h6 v-html="locale[selectedLocale].sections.professional.solidity"></h6>
-        </div>
-      </div>
-      <div class="badge text-center animated fadeInUp">
-        <div class="front">
-          <img class="img-fluid mx-auto d-block" src="/assets/c.png">
-        </div>
-        <div class="back badge-text">
-          <h6 v-html="locale[selectedLocale].sections.professional.c"></h6>
-        </div>
-      </div>
-      <div class="badge text-center animated fadeInUp">
-        <div class="front">
-          <img class="img-fluid mx-auto d-block" src="/assets/go.png">
-        </div>
-        <div class="back badge-text">
-          <h6 v-html="locale[selectedLocale].sections.professional.go"></h6>
-        </div>
-      </div>
+      <badge image="/assets/computer.png" v-bind:content="locale[selectedLocale].sections.professional.whoami"></badge>
+      <badge image="/assets/js.png" v-bind:content="locale[selectedLocale].sections.professional.js"></badge>
+      <badge image="/assets/python.png" v-bind:content="locale[selectedLocale].sections.professional.python"></badge>
+      <badge image="/assets/solidity.png" v-bind:content="locale[selectedLocale].sections.professional.solidity"></badge>
+      <badge image="/assets/c.png" v-bind:content="locale[selectedLocale].sections.professional.c"></badge>
+      <badge image="/assets/go.png" v-bind:content="locale[selectedLocale].sections.professional.go"></badge>
     </div>
 
-    <div class="mt-4"></div>
-    <h2 class="animated fadeIn"> <i class="fas fa-caret-right"></i> {{locale[selectedLocale].sections.toolbelt.title}}</h2>
-    <h6 class="animated fadeIn"><i class="animated fadeIn infinite">_</i> {{locale[selectedLocale].sections.toolbelt.description}}</h6>
-    <div class="mb-2"></div>
+    <badge-title v-bind:title="locale[selectedLocale].sections.toolbelt.title" v-bind:subtitle="locale[selectedLocale].sections.toolbelt.subtitle"></badge-title>
 
     <div class="badge-container">
-      <div class="badge text-center animated fadeInUp">
-        <div class="front">
-          <img class="img-fluid mx-auto d-block" src="/assets/gitkraken.png">
-        </div>
-        <div class="back badge-text">
-          <h6 v-html="locale[selectedLocale].sections.toolbelt.gitkraken"></h6>
-        </div>
-      </div>
-      <div class="badge text-center animated fadeInUp">
-        <div class="front">
-          <img class="img-fluid mx-auto d-block" src="/assets/sublime.png">
-        </div>
-        <div class="back badge-text">
-          <h6 v-html="locale[selectedLocale].sections.toolbelt.sublime"></h6>
-        </div>
-      </div>
-      <div class="badge text-center animated fadeInUp">
-        <div class="front">
-          <img class="img-fluid mx-auto d-block" src="/assets/hyper.png">
-        </div>
-        <div class="back badge-text">
-          <h6 v-html="locale[selectedLocale].sections.toolbelt.hyper"></h6>
-        </div>
-      </div>
+      <badge image="/assets/gitkraken.png" v-bind:content="locale[selectedLocale].sections.toolbelt.gitkraken"></badge>
+      <badge image="/assets/sublime.png" v-bind:content="locale[selectedLocale].sections.toolbelt.sublime"></badge>
+      <badge image="/assets/hyper.png" v-bind:content="locale[selectedLocale].sections.toolbelt.hyper"></badge>
     </div>
 
-    <div class="mt-4"></div>
-    <h2 class="animated fadeIn"> <i class="fas fa-caret-right"></i> {{locale[selectedLocale].sections.nodemodules.title}}</h2>
-    <h6 class="animated fadeIn"><i class="animated fadeIn infinite">_</i> {{locale[selectedLocale].sections.nodemodules.description}}</h6>
-    <div class="mb-2"></div>
+    <badge-title v-bind:title="locale[selectedLocale].sections.nodemodules.title" v-bind:subtitle="locale[selectedLocale].sections.nodemodules.subtitle"></badge-title>
 
     <div class="badge-container">
-      <div class="badge text-center animated fadeInUp">
-        <div class="front">
-          <img class="img-fluid mx-auto d-block" v-bind:src="lights ? '/assets/now-black.png' : '/assets/now-white.png'">
-        </div>
-        <div class="back badge-text">
-          <h6 v-html="locale[selectedLocale].sections.nodemodules.now"></h6>
-        </div>
-      </div>
-      <div class="badge text-center animated fadeInUp">
-        <div class="front">
-          <img class="img-fluid mx-auto d-block" src="/assets/micro.png">
-        </div>
-        <div class="back badge-text">
-          <h6 v-html="locale[selectedLocale].sections.nodemodules.micro"></h6>
-        </div>
-      </div>
-      <div class="badge text-center animated fadeInUp">
-        <div class="front">
-          <img class="img-fluid mx-auto d-block" src="/assets/artillery.png">
-        </div>
-        <div class="back badge-text">
-          <h6 v-html="locale[selectedLocale].sections.nodemodules.artillery"></h6>
-        </div>
-      </div>
-      <div class="badge text-center animated fadeInUp">
-        <div class="front">
-          <img class="img-fluid mx-auto d-block" src="/assets/graphql.png">
-        </div>
-        <div class="back badge-text">
-          <h6 v-html="locale[selectedLocale].sections.nodemodules.graphql"></h6>
-        </div>
-      </div>
-      <div class="badge text-center animated fadeInUp">
-        <div class="front">
-          <img class="img-fluid mx-auto d-block" src="/assets/objection.png">
-        </div>
-        <div class="back badge-text">
-          <h6 v-html="locale[selectedLocale].sections.nodemodules.objection"></h6>
-        </div>
-      </div>
-      <div class="badge text-center animated fadeInUp">
-        <div class="front">
-          <img class="img-fluid mx-auto d-block" src="/assets/ava.png">
-        </div>
-        <div class="back badge-text">
-          <h6 v-html="locale[selectedLocale].sections.nodemodules.ava"></h6>
-        </div>
-      </div>
+      <badge v-bind:image="lights ? '/assets/now-black.png' : '/assets/now-white.png'" v-bind:content="locale[selectedLocale].sections.nodemodules.now"></badge>
+      <badge image="/assets/micro.png" v-bind:content="locale[selectedLocale].sections.nodemodules.micro"></badge>
+      <badge image="/assets/artillery.png" v-bind:content="locale[selectedLocale].sections.nodemodules.artillery"></badge>
+      <badge image="/assets/graphql.png" v-bind:content="locale[selectedLocale].sections.nodemodules.graphql"></badge>
+      <badge image="/assets/objection.png" v-bind:content="locale[selectedLocale].sections.nodemodules.objection"></badge>
+      <badge image="/assets/ava.png" v-bind:content="locale[selectedLocale].sections.nodemodules.ava"></badge>
+      <!-- <badge image="/assets/socketio.png" v-bind:content="locale[selectedLocale].sections.nodemodules.socketio"></badge> -->
     </div>
 
     <div class="my-4 text-center">  
       <div class="my-5 py-2 animated fadeInUp">
         <h6>Fork me on github!
-          <a target="_blank" href="https://github.com/paulogdm/paulogdm.com" class="ml-2">
-            <i class="fab fa-fw fa-github"></i>
+          <a target="_blank" href="https://github.com/paulogdm/paulogdm.com" class="mx-2">
+            <i class="fas fa-fw fa-code-branch"></i>
           </a>
         </h6>
       </div>
