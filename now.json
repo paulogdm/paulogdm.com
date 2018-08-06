@@ -11,10 +11,6 @@
             "value": "no-referrer-when-downgrade"
           },
           {
-            "key": "Content-Security-Policy",
-            "value": "default-src https:; report-uri https://TODO-GET-YOUR-OWN-ACCOUNT.report-uri.com/r/d/csp/enforce"
-          },
-          {
             "key": "X-XSS-Protection",
             "value": "1; mode=block"
           },
