@@ -3,8 +3,9 @@ body {
 }
 
 h1 {
-  font-weight: 100;
+  font-weight: 300;
   transition: all 1s ease;
+  text-shadow: rgba(0,0,0,.01) 0 0 1px;
 }
 
 h6 {
@@ -79,7 +80,7 @@ a:hover {
 
 .lightbulb:hover {
   color: #FFD200;
-  transition: all 0.2s ease; 
+  transition: all 0.2s ease;
 }
 
 .background-white {

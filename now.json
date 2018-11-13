@@ -1,6 +1,16 @@
 {
+  "version": 2,
   "name": "paulogdm.com",
-  "alias": "paulogdm",
+  "alias": [
+    "paulogdm.now.sh",
+    "paulogdm.com"
+  ],
+  "builders": [
+    { "src": "/*.html", "use": "@now/static" },
+    { "src": "/*.js", "use": "@now/static" },
+    { "src": "/*.css", "use": "@now/static" },
+    { "src": "/assets/*", "use": "@now/static" }
+  ],
   "static": {
     "headers": [
       {
@@ -37,5 +47,6 @@
         ]
       }
     ]
-  }
+  },
+  "public": true
 }
