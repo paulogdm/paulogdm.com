@@ -5,6 +5,7 @@
     "paulogdm.now.sh",
     "paulogdm.com"
   ],
+  "regions": ["sfo1", "gru1"],
   "builders": [
     { "src": "/*.html", "use": "@now/static" },
     { "src": "/*.js", "use": "@now/static" },
