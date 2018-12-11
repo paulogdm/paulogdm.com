@@ -3,7 +3,8 @@
   "name": "paulogdm.com",
   "alias": [
     "paulogdm.now.sh",
-    "paulogdm.com"
+    "paulogdm.com",
+    "xn--s28h.now.sh"
   ],
   "regions": ["sfo1", "gru1"],
   "builders": [
