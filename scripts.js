@@ -33,7 +33,7 @@ const app = new Vue({
   data: {
     lights: false,
     availableLocales: ['en', 'ptbr'],
-    selectedLocale: 'ptbr',
+    selectedLocale: 'en',
     locale: locale
   },
 
