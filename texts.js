@@ -1,16 +1,16 @@
 const locale = {
   en: {
-    flag: '/assets/USA.png',
+    flag: "/assets/USA.png",
     sections: {
       personal: {
-        title: 'Personal',
-        subtitle: 'A few things about me.',
-        pcmasterrace: `I've always had a PC at home. <br>
-        I assembled my very own first PC in 2010. <br>
+        title: "Personal",
+        subtitle: "A few things about me.",
+        pcmasterrace: `I always had a PC at home. <br>
+        My first PC assembly was done in 2010. <br>
         PC Master Race FTW. <br>
         <a target="_blank" href="https://www.reddit.com/r/pcmasterrace/"><i class="fas fa-external-link-alt"></i></a>
         `,
-        crypto: `I started with Litecoin and Bitcoin in 2012.
+        crypto: `Litecoin and Bitcoin grabbed my attention in 2012.
         I only went to study the technology after 2015. <br>
         Ethereum is awesome! <br>
         If you say to me: "I don't like Bitcoin, but blockchain is very interesting." I will die discreetly inside.<br>
@@ -25,22 +25,23 @@ const locale = {
         but I already have a little collection of headphones. <br>
         It is very enjoyable to listen to some music with different hardware.
         Do you know that you can purchase a good pair of headphones for just 20 USD? Check it out: <br>
-        <a target="_blank" href="http://www.gearbest.com/headsets/pp_270782.html?vip=401831"><i class="fas fa-external-link-alt"></i></a>
+        <a target="_blank" href="https://www.head-fi.org/showcase/superlux-hd-681.12304/"><i class="fas fa-external-link-alt"></i></a>
         `,
-        talk: `Do you like talking? Me too! <br> 
+        talk: `Do you like talking? <br> 
         I really enjoy discussing new ideas and help others. <br>
-        I'm also adicted to "cases" and read a lot in Quora and Medium. <br>
-        <a target="_blank" href="https://www.quora.com"><i class="fas fa-external-link-alt"></i></a>
+        I'm also adicted to "cases" and read a lot about it everywhere. <br>
+        Follow me on Twitter 👇. <br>
+        <a target="_blank" href="https://twitter.com/paulogdm"><i class="fas fa-external-link-alt"></i></a>
         `,
-        icetea: `If you want to see me happy a cup of iced tea is a great start! <br> 
-        I also enjoy to go out for a drink and a talk. <br>
-        If I have the time, I try to do mix stuff with tea... <br>
+        icetea: `If you want to see me happy, a cup of iced tea is a great start! <br> 
+        I also enjoy to go out for a drink and just talk. <br>
+        Still learning a lot about tea. <br>
         <a target="_blank" href="https://www.reddit.com/r/tea/"><i class="fas fa-external-link-alt"></i></a>
         `
       },
       professional: {
-        title: 'Professional',
-        subtitle: 'A collection of professional tools and skills.',
+        title: "Professional",
+        subtitle: "A collection of professional tools and skills.",
         whoami: `I'm a developer "graduated" in Computer Sciente by ICMC from Universidade de Sao Paulo. <br>
         Most of the things I learned and used on a day-to-day basis at work was out of my own curiosity. <br>
         Motivation for me is a very important factor and my productivity depends a lot on it. <br>
@@ -72,12 +73,11 @@ const locale = {
         `
       },
       toolbelt: {
-        title: 'Favorite Apps',
-        subtitle: 'List of programs that I really like to use!',
-        gitkraken: `I used GIT under the CLI, but then I discovered Gitkraken.<br>
-        Today I tell people about this amazing program for every developer that uses GIT and wants the job done. <br>
-        And soon we will have <a target="_blank" href="https://www.gitkraken.com/glo" class="neon">Gitkraken Glo<a>!<br>
-        <a target="_blank" href="https://www.gitkraken.com/"><i class="fas fa-external-link-alt"></i></a>
+        title: "Favorite Apps",
+        subtitle: "List of programs that I really like to use!",
+        bash: `OhMyZsh changed the way I use the terminal.<br>
+        I'm still trying to master this awesome tool. <br>
+        <a target="_blank" href="https://github.com/ohmyzsh/ohmyzsh"><i class="fas fa-external-link-alt"></i></a>
         `,
         sublime: `I already tried VIM, Notepad++ (old times), Brackets, Atom e some IDEs. I always go back to Sublime 
         for his speed. I don't think of changing my text editor soon...<br>
@@ -89,11 +89,11 @@ const locale = {
         `
       },
       nodemodules: {
-        title: 'Node.js Modules',
-        subtitle: 'Bucket of libs that I enjoy.',
-        now: `I discovered "now" and Zeit's ecosystem by the end of 2017. <br>
-        The ease of deploy and scalability is outstanding! <br>
-        You can put an API to work with a URL in just 10 seconds. Check it out:<br>
+        title: "Node.js Modules",
+        subtitle: "Bucket of libs that I enjoy.",
+        now: `I discovered Now and ZEIT's ecosystem by the end of 2017. <br>
+        The ease of deploy and the value added to your workflow is unmatched! <br>
+        You can put an API to work with a static frontend in just a few seconds. Check it out:<br>
         <a target="_blank" href="https://zeit.co/now"><i class="fas fa-external-link-alt"></i></a>
         `,
         micro: `Micro fast and modern! <br>
@@ -126,11 +126,11 @@ const locale = {
   },
 
   ptbr: {
-    flag: '/assets/BR.png',
+    flag: "/assets/BR.png",
     sections: {
       personal: {
-        title: 'Pessoal',
-        subtitle: 'Algumas coisas sobre mim.',
+        title: "Pessoal",
+        subtitle: "Algumas coisas sobre mim.",
         pcmasterrace: `Sempre tive um PC em casa. <br>
         Eu montei meu primeiro PC em 2010. <br>
         PC Master Race FTW. <br>
@@ -150,23 +150,24 @@ const locale = {
         headphones: `Eu estou começando ainda no mundo do áudio. 
         Mas já tenho uma coleção razoável de headphones. <br>
         É muito divertido ouvir música com diferentes tipos de acessórios.
-        Você sabia que um bom headphone para começar custa apenas 20 dólares? Confere aí: <br>
-        <a target="_blank" href="http://www.gearbest.com/headsets/pp_270782.html?vip=401831"><i class="fas fa-external-link-alt"></i></a>
+        Você sabia que um bom headphone custa apenas 20 dólares? Confere aí: <br>
+        <a target="_blank" href="https://www.head-fi.org/showcase/superlux-hd-681.12304/"><i class="fas fa-external-link-alt"></i></a>
         `,
-        talk: `Você gosta de conversar? Eu também! <br> 
+        talk: `Você gosta de conversar? <br> 
         Gosto muito de discutir ideias e ajudar os outros. <br>
-        Sou viciado em cases e leio bastante sites como Quora e Medium.<br>
-        <a target="_blank" href="https://www.quora.com"><i class="fas fa-external-link-alt"></i></a>
+        Sou viciado em cases e leio bastante de várias fontes.<br>
+        Me segue no Twitter 👇. <br>
+        <a target="_blank" href="https://twitter.com/paulogdm"><i class="fas fa-external-link-alt"></i></a>
         `,
         icetea: `Se você quer me ver feliz um copo de chá gelado é um bom começo! <br> 
         Também gosto muito de sair para beber alguma coisa e apenas conversar. <br>
-        Sempre que tenho algum tempo busco fazer alguma coisa com chá... <br>
+        Ainda estou começando nesse mundo... <br>
         <a target="_blank" href="https://www.reddit.com/r/tea/"><i class="fas fa-external-link-alt"></i></a>
         `
       },
       professional: {
-        title: 'Profissional',
-        subtitle: 'Uma coleção de ferramentas e skills profissionais.',
+        title: "Profissional",
+        subtitle: "Uma coleção de ferramentas e skills profissionais.",
         whoami: `Eu sou um desenvolvedor "formado" em Ciências da Computação pelo ICMC da USP. <br>
         A maioria das coisas que aprendi e uso no dia a dia do trabalho foi por curiosidade própria. <br>
         Motivação pra mim é um fator muito importante e minha produtividade depende muito dela. <br>
@@ -198,12 +199,11 @@ const locale = {
         `
       },
       toolbelt: {
-        title: 'Programas Preferidos',
-        subtitle: 'Lista de programas que eu gosto muito de usar!',
-        gitkraken: `Eu usava GIT no terminal, mas aí descobri Gitkraken. <br>
-        Hoje eu indico esse programa fantástico para qualquer desenvolvedor que usa GIT e quer velocidade. <br>
-        E em breve teremos <a target="_blank" href="https://www.gitkraken.com/glo" class="neon">Gitkraken Glo<a>! <br>
-        <a target="_blank" href="https://www.gitkraken.com/"><i class="fas fa-external-link-alt"></i></a>
+        title: "Programas Preferidos",
+        subtitle: "Lista de programas que eu gosto muito de usar!",
+        bash: `OhMyZsh mudou a maneira como uso o terminal.<br>
+        Ainda preciso aprender muita coisa sobre essa ferramenta sensacional. <br>
+        <a target="_blank" href="https://github.com/ohmyzsh/ohmyzsh"><i class="fas fa-external-link-alt"></i></a>
         `,
         sublime: `Eu já usei VIM, Notepad++ (old times), Brackets, Atom e algumas IDEs. Sempre volto a usar o Sublime 
         por sua velocidade. Não acho que vou mudar de editor tão cedo...<br>
@@ -215,11 +215,11 @@ const locale = {
         `
       },
       nodemodules: {
-        title: 'Node.js Modules',
-        subtitle: 'Algumas bilbiotecas que eu gosto para Node.js.',
-        now: `Descobri now.sh e o ecossistema Zeit no final de 2017. <br>
-        A facilidade de deploy e escalabilidade é tenebrosa! <br>
-        Você pode colocar uma API funcionando e com uma URL em apenas 10 segundos. Confere aí: <br>
+        title: "Node.js Modules",
+        subtitle: "Algumas bilbiotecas que eu gosto para Node.js.",
+        now: `Descobri Now e o ecossistema ZEIT no final de 2017. <br>
+        A facilidade para fazer deploy e o valor que ela adiciona no seu wokflow são sensacionais!
+        Você pode colocar um frontend com uma API online em apenas alguns segundos. Dá uma olhada: <br>
         <a target="_blank" href="https://zeit.co/now"><i class="fas fa-external-link-alt"></i></a>
         `,
         micro: `Micro é rápido e moderno! <br>
@@ -250,4 +250,4 @@ const locale = {
       }
     }
   }
-}
+};
