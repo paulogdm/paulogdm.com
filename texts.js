@@ -5,8 +5,8 @@ const locale = {
       personal: {
         title: "Personal",
         subtitle: "A few things about me.",
-        pcmasterrace: `I always had a PC at home. <br>
-        My first PC assembly was done in 2010. <br>
+        pcmasterrace: `I always had a PC at home and <br>
+        assembled my first one in 2010. <br>
         PC Master Race FTW. <br>
         <a target="_blank" href="https://www.reddit.com/r/pcmasterrace/"><i class="fas fa-external-link-alt"></i></a>
         `,
