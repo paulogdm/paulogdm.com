@@ -48,7 +48,7 @@
       </div>
     </div>
 
-    <div class="my-4 text-center">
+    <div class="my-4 text-center align-middle">
       <div v-if="!$data" class="lds-circle"></div>
       <div class="me-size animated fadeIn">
         <img src="/assets/me.jpg" class="mx-auto d-block" v-bind:class="lights ? 'me-white' : 'me-black'" unselectable="on" style="display:none;" alt="">
@@ -72,68 +72,12 @@
           <a class="mx-2" href="https://stackoverflow.com/users/2665655/paulogdm" target="_blank">
             <i class="fab fa-stack-overflow fa-fw fa-lg"></i>
           </a>
-          <a class="mx-2" href="https://zeit.co/chat?experts" target="_blank">
+          <a class="mx-2" href="https://vercel.com/about" target="_blank">
             <b class="fa-fw fa-lg">▲</b>
           </a>
         </h6>
       </div>
     </div>
-
-    <badge-title v-bind:title="locale[selectedLocale].sections.personal.title" v-bind:subtitle="locale[selectedLocale].sections.personal.subtitle"></badge-title>
-
-    <div class="badge-container">
-      <badge image="/assets/crypto.png" v-bind:content="locale[selectedLocale].sections.personal.crypto"></badge>
-      <badge image="/assets/pcmasterrace.png" v-bind:content="locale[selectedLocale].sections.personal.pcmasterrace"></badge>
-      <badge image="/assets/owblack.png" v-bind:content="locale[selectedLocale].sections.personal.overwatch"></badge>
-      <badge image="/assets/headphone.png" v-bind:content="locale[selectedLocale].sections.personal.headphones"></badge>
-      <badge image="/assets/talk.png" v-bind:content="locale[selectedLocale].sections.personal.talk"></badge>
-      <badge image="/assets/icetea.png" v-bind:content="locale[selectedLocale].sections.personal.icetea"></badge>
-    </div>
-
-    <badge-title v-bind:title="locale[selectedLocale].sections.professional.title" v-bind:subtitle="locale[selectedLocale].sections.professional.subtitle"></badge-title>
-
-    <div class="badge-container">
-      <badge image="/assets/computer.png" v-bind:content="locale[selectedLocale].sections.professional.whoami"></badge>
-      <badge image="/assets/js.png" v-bind:content="locale[selectedLocale].sections.professional.js"></badge>
-      <badge image="/assets/python.png" v-bind:content="locale[selectedLocale].sections.professional.python"></badge>
-      <badge image="/assets/solidity.png" v-bind:content="locale[selectedLocale].sections.professional.solidity"></badge>
-      <badge image="/assets/c.png" v-bind:content="locale[selectedLocale].sections.professional.c"></badge>
-      <badge image="/assets/go.png" v-bind:content="locale[selectedLocale].sections.professional.go"></badge>
-    </div>
-
-    <badge-title v-bind:title="locale[selectedLocale].sections.toolbelt.title" v-bind:subtitle="locale[selectedLocale].sections.toolbelt.subtitle"></badge-title>
-
-    <div class="badge-container">
-      <badge image="/assets/bash.png" v-bind:content="locale[selectedLocale].sections.toolbelt.bash"></badge>
-      <badge image="/assets/sublime.png" v-bind:content="locale[selectedLocale].sections.toolbelt.sublime"></badge>
-      <badge image="/assets/hyper.png" v-bind:content="locale[selectedLocale].sections.toolbelt.hyper"></badge>
-    </div>
-
-    <badge-title v-bind:title="locale[selectedLocale].sections.nodemodules.title" v-bind:subtitle="locale[selectedLocale].sections.nodemodules.subtitle"></badge-title>
-
-    <div class="badge-container">
-      <badge v-bind:image="lights ? '/assets/now-black.png' : '/assets/now-white.png'" v-bind:content="locale[selectedLocale].sections.nodemodules.now"></badge>
-      <badge image="/assets/micro.png" v-bind:content="locale[selectedLocale].sections.nodemodules.micro"></badge>
-      <badge image="/assets/artillery.png" v-bind:content="locale[selectedLocale].sections.nodemodules.artillery"></badge>
-      <badge image="/assets/graphql.png" v-bind:content="locale[selectedLocale].sections.nodemodules.graphql"></badge>
-      <badge image="/assets/objection.png" v-bind:content="locale[selectedLocale].sections.nodemodules.objection"></badge>
-      <badge image="/assets/ava.png" v-bind:content="locale[selectedLocale].sections.nodemodules.ava"></badge>
-      <!-- <badge image="/assets/socketio.png" v-bind:content="locale[selectedLocale].sections.nodemodules.socketio"></badge> -->
-    </div>
-
-    <div class="my-4 text-center">
-      <div class="my-5 py-2 animated fadeInUp">
-        <h6>Fork me on github!
-          <a target="_blank" href="https://github.com/paulogdm/paulogdm.com" class="mx-2">
-            <i class="fas fa-fw fa-code-branch"></i>
-          </a>
-        </h6>
-      </div>
-      <div style="color:gray">
-      <small>Icons made by <a href="https://www.flaticon.com/authors/roundicons" title="Roundicons">Roundicons</a>, <a href="http://www.freepik.com" title="Freepik">Freepik</a> and <a href="https://github.com/paomediafrom">Paomedia</a> <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></small>
-      </div>
-    </div>
-
   </div>
 </body>
 
