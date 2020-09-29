@@ -41,11 +41,6 @@
           <i class="far fa-lightbulb fa-fw fa-2x"></i>
         </div>
       </div>
-      <div v-on:click="changeLocale()" class="float-right is-clickable animated fadeIn p-2">
-        <div>
-          <img v-for="ilocale of availableLocales" v-if="selectedLocale === ilocale" v-bind:src="locale[ilocale].flag" class="mx-auto d-block flag" unselectable="on">
-        </div>
-      </div>
     </div>
 
     <div class="my-4 text-center align-middle">
