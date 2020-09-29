@@ -31,10 +31,7 @@ Vue.component('badge', {
 const app = new Vue({
   el: '#mainpage',
   data: {
-    lights: false,
-    availableLocales: ['en', 'ptbr'],
-    selectedLocale: 'en',
-    locale: locale
+    lights: false
   },
 
   methods: {
@@ -44,24 +41,11 @@ const app = new Vue({
       body.toggle('background-white', this.lights)
       body.toggle('background-black', !this.lights)
       Cookies.set('lights', this.lights ? 'on' : 'off')
-    },
-    changeLocale: function () {
-      this.selectedLocale = this.selectedLocale === 'ptbr' ? 'en' : 'ptbr'
-      Cookies.set('locale', this.selectedLocale)
     }
   },
 
   created: function () {
-    const locale = Cookies.get('locale')
-
-    if (locale && this.availableLocales.includes(locale)) {
-      this.selectedLocale = locale
-    } else {
-      Cookies.set('locale', 'en')
-    }
-
     const lights = Cookies.get('lights')
-
     if (lights && (lights === 'off' || lights === 'on')) {
       this.lights = (lights === 'on')
       const body = document.querySelector('body').classList
