@@ -60,8 +60,7 @@
       <img
         src="/assets/me.jpg"
         class="mx-auto d-block {lights ? 'me-white' : 'me-black'}"
-        style="display:none;"
-        alt=""
+        alt="paulogdm"
         draggable="false"
       >
     </div>
