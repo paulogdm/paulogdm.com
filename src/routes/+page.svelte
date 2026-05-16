@@ -31,6 +31,7 @@
       setCookie('lights', lights ? 'on' : 'off');
     }
   });
+
 </script>
 
 <svelte:head>
