@@ -1,5 +1,13 @@
 <script>
   import { onMount } from 'svelte';
+  import Icon from '@iconify/svelte';
+  import lightbulbIcon     from '@iconify-icons/lucide/lightbulb';
+  import mailIcon          from '@iconify-icons/lucide/mail';
+  import calendarIcon      from '@iconify-icons/lucide/calendar';
+  import githubIcon        from '@iconify-icons/simple-icons/github';
+  import linkedinIcon      from '@iconify-icons/simple-icons/linkedin';
+  import xIcon             from '@iconify-icons/simple-icons/x';
+  import stackoverflowIcon from '@iconify-icons/simple-icons/stackoverflow';
 
   let lights = $state(false);
 
@@ -52,7 +60,7 @@
       class="lightbulb float-left animated fadeIn p-2"
       aria-label="Toggle light/dark mode"
     >
-      <i class="far fa-lightbulb fa-fw fa-2x"></i>
+      <Icon icon={lightbulbIcon} width="1.5em" />
     </button>
   </div>
 
@@ -70,22 +78,22 @@
       <h1>paulogdm</h1>
       <h6 class="mt-3" aria-label="Useful links">
         <a class="mx-2" href="&#77;&#97;&#73;&#76;&#84;&#79;&#58;&#109;&#101;&#64;&#112;&#97;&#117;&#108;&#111;&#103;&#100;&#109;&#46;&#99;&#111;&#109;" target="_blank" rel="noopener noreferrer" aria-label="Email">
-          <i class="far fa-envelope fa-fw fa-lg"></i>
+          <Icon icon={mailIcon} width="1.1em" />
         </a>
         <a class="mx-2" href="https://x.com/paulogdm" target="_blank" rel="noopener noreferrer" aria-label="X">
-          <i class="fab fa-x-twitter fa-fw fa-lg"></i>
+          <Icon icon={xIcon} width="1.1em" />
         </a>
         <a class="mx-2" href="https://www.linkedin.com/in/paulogdm/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-          <i class="fab fa-linkedin-in fa-fw fa-lg"></i>
+          <Icon icon={linkedinIcon} width="1.1em" />
         </a>
         <a class="mx-2" href="https://github.com/paulogdm" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
-          <i class="fab fa-github fa-fw fa-lg"></i>
+          <Icon icon={githubIcon} width="1.1em" />
         </a>
         <a class="mx-2" href="https://stackoverflow.com/users/2665655/paulogdm" target="_blank" rel="noopener noreferrer" aria-label="Stack Overflow">
-          <i class="fab fa-stack-overflow fa-fw fa-lg"></i>
+          <Icon icon={stackoverflowIcon} width="1.1em" />
         </a>
         <a class="mx-2" href="https://cal.com/paulogdm/15min" target="_blank" rel="noopener noreferrer" aria-label="Schedule a time using cal.com">
-          <i class="fa fa-calendar fa-fw fa-lg"></i>
+          <Icon icon={calendarIcon} width="1.1em" />
         </a>
       </h6>
     </div>
