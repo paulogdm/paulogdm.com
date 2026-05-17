@@ -40,7 +40,7 @@
   <meta property="og:description" content="Paulogdm personal page. Make yourself at home." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://paulogdm.com" />
-  <meta property="og:image" content="https://paulogdm.com/assets/me.jpg" />
+  <meta property="og:image" content="https://paulogdm.com/assets/ogimage.svg" />
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:site" content="@paulogdm" />
 </svelte:head>
