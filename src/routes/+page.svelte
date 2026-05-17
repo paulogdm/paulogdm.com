@@ -60,7 +60,7 @@
       class="lightbulb float-left animated fadeIn p-2"
       aria-label="Toggle light/dark mode"
     >
-      <Icon icon={lightbulbIcon} width="1.5em" />
+      <Icon icon={lightbulbIcon} width="2em" />
     </button>
   </div>
 
@@ -78,22 +78,22 @@
       <h1>paulogdm</h1>
       <h6 class="mt-3" aria-label="Useful links">
         <a class="mx-2" href="&#77;&#97;&#73;&#76;&#84;&#79;&#58;&#109;&#101;&#64;&#112;&#97;&#117;&#108;&#111;&#103;&#100;&#109;&#46;&#99;&#111;&#109;" target="_blank" rel="noopener noreferrer" aria-label="Email">
-          <Icon icon={mailIcon} width="1.1em" />
+          <Icon icon={mailIcon} width="1.33em" />
         </a>
         <a class="mx-2" href="https://x.com/paulogdm" target="_blank" rel="noopener noreferrer" aria-label="X">
-          <Icon icon={xIcon} width="1.1em" />
+          <Icon icon={xIcon} width="1.33em" />
         </a>
         <a class="mx-2" href="https://www.linkedin.com/in/paulogdm/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-          <Icon icon={linkedinIcon} width="1.1em" />
+          <Icon icon={linkedinIcon} width="1.33em" />
         </a>
         <a class="mx-2" href="https://github.com/paulogdm" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
-          <Icon icon={githubIcon} width="1.1em" />
+          <Icon icon={githubIcon} width="1.33em" />
         </a>
         <a class="mx-2" href="https://stackoverflow.com/users/2665655/paulogdm" target="_blank" rel="noopener noreferrer" aria-label="Stack Overflow">
-          <Icon icon={stackoverflowIcon} width="1.1em" />
+          <Icon icon={stackoverflowIcon} width="1.33em" />
         </a>
         <a class="mx-2" href="https://cal.com/paulogdm/15min" target="_blank" rel="noopener noreferrer" aria-label="Schedule a time using cal.com">
-          <Icon icon={calendarIcon} width="1.1em" />
+          <Icon icon={calendarIcon} width="1.33em" />
         </a>
       </h6>
     </div>
