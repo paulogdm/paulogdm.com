@@ -84,6 +84,9 @@
         <a class="mx-2" href="https://stackoverflow.com/users/2665655/paulogdm" target="_blank" rel="noopener noreferrer" aria-label="Stack Overflow">
           <i class="fab fa-stack-overflow fa-fw fa-lg"></i>
         </a>
+        <a class="mx-2" href="https://cal.com/paulogdm/15min" target="_blank" rel="noopener noreferrer" aria-label="Schedule a time using cal.com">
+          <i class="fa fa-calendar fa-fw fa-lg"></i>
+        </a>
       </h6>
     </div>
   </div>
