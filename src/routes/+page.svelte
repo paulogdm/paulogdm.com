@@ -40,6 +40,38 @@
     }
   });
 
+  // ── Timeline math ────────────────────────────────────────────
+  // Right edge is fixed at Jan 2018. Left edge is "now", clamped
+  // to a minimum of May 24 2026 to guard against tampered clocks.
+  const tlStart  = new Date(2018, 0, 1);   // Jan 2018 — right edge
+  const tlMinNow = new Date(2026, 4, 24);  // May 24, 2026 — floor
+  const tlNow    = new Date() < tlMinNow ? tlMinNow : new Date();
+
+  const tlTotalMonths =
+    (tlNow.getFullYear() - tlStart.getFullYear()) * 12 +
+    (tlNow.getMonth()    - tlStart.getMonth());
+
+  // Percentage from the left (now) for any date on the timeline
+  function tlPct(date) {
+    const months =
+      (tlNow.getFullYear() - date.getFullYear()) * 12 +
+      (tlNow.getMonth()    - date.getMonth());
+    return +(Math.max(0, Math.min(100, months / tlTotalMonths * 100)).toFixed(3));
+  }
+
+  // Vercel: Nov 2018 → Feb 2026
+  const vercelEndDate   = new Date(2026,  1, 1);  // Feb 2026
+  const vercelStartDate = new Date(2018, 10, 1);  // Nov 2018
+  const vercelLeft      = tlPct(vercelEndDate);
+  const vercelWidth     = tlPct(vercelStartDate) - vercelLeft;
+  const vercelLabelLeft = vercelLeft + vercelWidth / 2;
+
+  // Year markers (positions only — '18 is always the right edge)
+  const tlYears = [2024, 2022, 2020].map(y => ({
+    label: `'${String(y).slice(2)}`,
+    left:  tlPct(new Date(y, 0, 1)),
+  }));
+
 </script>
 
 <svelte:head>
@@ -113,7 +145,7 @@
           </svg>
           Clerk
         </div>
-        <div class="tl-company tl-vercel" data-tenure="Nov 2018 to Feb 2026">
+        <div class="tl-company tl-vercel" data-tenure="Nov 2018 to Feb 2026" style="left: {vercelLabelLeft}%">
           <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
             <path d="m12 1.608 12 20.784H0Z"/>
           </svg>
@@ -122,13 +154,13 @@
       </div>
       <div class="tl-track" aria-hidden="true">
         <span class="tl-spark"></span>
-        <span class="tl-vercel-seg"></span>
+        <span class="tl-vercel-seg" style="left: {vercelLeft}%; width: {vercelWidth}%"></span>
       </div>
       <div class="tl-years" aria-hidden="true">
         <span class="tl-yr tl-yr-now">now</span>
-        <span class="tl-yr" style="left: 27%">'24</span>
-        <span class="tl-yr" style="left: 51%">'22</span>
-        <span class="tl-yr" style="left: 75%">'20</span>
+        {#each tlYears as { label, left }}
+          <span class="tl-yr" style="left: {left}%">{label}</span>
+        {/each}
         <span class="tl-yr tl-yr-end">'18</span>
       </div>
     </div>
