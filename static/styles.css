@@ -106,37 +106,57 @@ a:hover {
   transition: all 0.2s ease;
 }
 
-/* ── Logo cards row ─────────────────────────────────────────── */
-.logo-row {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 1rem;
-  padding: 0 1rem 3rem;
+/* ── Career timeline ─────────────────────────────────────────── */
+.tl-section {
+  padding: 0 1.5rem 3rem;
 }
 
-.logo-card {
-  width: 80px;
-  aspect-ratio: 1 / 1;
-  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
-  border-radius: 12px;
+.tl-wrap {
+  position: relative;
+  width: 100%;
+}
+
+/* Company labels above the track */
+.tl-labels {
+  position: relative;
+  height: 1.5rem;
+  margin-bottom: 0.65rem;
+}
+
+.tl-company {
+  position: absolute;
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 18px;
-  position: relative;
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.25s ease;
+  gap: 0.3rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
   cursor: default;
 }
 
-.logo-card::after {
+.tl-company svg {
+  width: 11px;
+  height: 11px;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.tl-clerk  { left: 0; }
+
+.tl-vercel {
+  left: 49%;
+  transform: translateX(-50%);
+}
+
+/* Tenure badge — appears below each company label on hover */
+.tl-company::after {
   content: attr(data-tenure);
   position: absolute;
-  bottom: -1.6rem;
-  left: 50%;
-  transform: translateX(-50%) translateY(4px);
+  left: calc(100% + 0.4rem);
+  top: 50%;
+  transform: translateY(-50%) translateX(3px);
   opacity: 0;
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   letter-spacing: 0.06em;
   white-space: nowrap;
   color: #FF6600;
@@ -144,22 +164,101 @@ a:hover {
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
-.logo-card:hover::after {
+.tl-company:hover::after {
   opacity: 1;
-  transform: translateX(-50%) translateY(0);
+  transform: translateY(-50%) translateX(0);
 }
 
-.logo-card:hover {
-  transform: scale(1.08);
-  border-color: #FF6600;
+/* The track line */
+.tl-track {
+  position: relative;
+  height: 1px;
+  background: color-mix(in srgb, currentColor 15%, transparent);
 }
 
-.logo-card svg,
-.logo-card img {
-  width: 100%;
+/* Vercel segment: Feb 2026 → Nov 2018 = 8% to 90% from left */
+.tl-vercel-seg {
+  position: absolute;
+  left: 8%;
+  width: 82%;
   height: 100%;
-  display: block;
-  object-fit: contain;
+  background: currentColor;
+  opacity: 0.5;
+}
+
+/* Tick marks at segment endpoints */
+.tl-vercel-seg::before,
+.tl-vercel-seg::after {
+  content: '';
+  position: absolute;
+  width: 1px;
+  height: 8px;
+  background: currentColor;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.85;
+}
+.tl-vercel-seg::before { left: 0; }
+.tl-vercel-seg::after  { right: 0; }
+
+
+/* The "now" spark — small orange orb with double-halo */
+.tl-spark {
+  position: absolute;
+  left: -2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #FF6600;
+  box-shadow: 0 0 4px 1px #FF6600, 0 0 10px 3px rgba(255, 102, 0, 0.25);
+}
+
+/* Two expanding halos — inset: -1.5px starts them at the original 7px diameter */
+.tl-spark::before,
+.tl-spark::after {
+  content: '';
+  position: absolute;
+  inset: -1.5px;
+  border-radius: 50%;
+  background: #FF6600;
+  animation: spark-halo 2.5s ease-out infinite;
+}
+.tl-spark::after { animation-delay: 1.25s; }
+
+@keyframes spark-halo {
+  0%   { transform: scale(1);   opacity: 0.45; }
+  100% { transform: scale(3.5); opacity: 0; }
+}
+
+/* Year markers below the track */
+.tl-years {
+  position: relative;
+  height: 1rem;
+  margin-top: 0.55rem;
+  user-select: none;
+}
+
+.tl-yr {
+  position: absolute;
+  font-size: 0.58rem;
+  letter-spacing: 0.07em;
+  opacity: 0.3;
+  transform: translateX(-50%);
+}
+
+.tl-yr-now {
+  left: 0;
+  transform: none;
+  opacity: 0.8;
+  color: #FF6600;
+}
+
+.tl-yr-end {
+  right: 0;
+  left: auto;
+  transform: none;
 }
 
 /* ── Profile photo ──────────────────────────────────────────── */
@@ -207,8 +306,12 @@ a:hover {
     animation: none;
   }
 
-  .me-photo:hover,
-  .logo-card:hover {
+  .me-photo:hover {
     transform: none;
+  }
+
+  .tl-spark::before,
+  .tl-spark::after {
+    animation: none;
   }
 }
