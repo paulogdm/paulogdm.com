@@ -15,14 +15,12 @@ html.theme-dark {
   --bg:           #000000;
   --text:         #FFFFFF;
   --shadow-color: rgba(255, 255, 255, 0.65);
-  --bg-glass:     rgba(0, 0, 0, 0.6);
 }
 
 html.theme-light {
   --bg:           #FFFFFF;
   --text:         #000000;
   --shadow-color: rgba(0, 0, 0, 0.4);
-  --bg-glass:     rgba(255, 255, 255, 0.6);
 }
 
 /* Fluid root: all rem-based sizes (spacing, icons, timeline labels) scale
@@ -188,11 +186,6 @@ a:hover {
   white-space: nowrap;
   color: var(--accent);
   pointer-events: none;
-  padding: 0.2em 0.5em;
-  border-radius: 0.3em;
-  background: var(--bg-glass);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
@@ -330,6 +323,14 @@ a:hover {
 
 .me-photo:hover {
   transform: scale(1.1);
+}
+
+/* ── Timeline: prevent Vercel label overlapping Clerk badge ──── */
+/* On narrow viewports the Clerk tenure badge (≈115px) extends past
+   Vercel's left edge. Pushing Vercel to 65% of the track clears it
+   with a comfortable gap. !important overrides the inline style. */
+@media (max-width: 520px) {
+  .tl-vercel { left: 65% !important; }
 }
 
 /* ── Reduced motion ─────────────────────────────────────────── */
