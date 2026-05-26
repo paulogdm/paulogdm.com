@@ -40,8 +40,9 @@ body {
 }
 
 h1 {
+  font-family: 'Syne', sans-serif;
   font-size: 2.5rem;
-  font-weight: 300;
+  font-weight: 400;
   margin-top: 0;
   margin-bottom: 0.5rem;
   transition: color 1s ease;
@@ -155,6 +156,7 @@ a:hover {
   letter-spacing: 0.05em;
   white-space: nowrap;
   cursor: default;
+  user-select: none;
 }
 
 .tl-company svg {
@@ -164,10 +166,11 @@ a:hover {
   opacity: 0.85;
 }
 
-.tl-clerk  { left: 0; }
+.tl-clerk  { left: 0; } /* Inter — Clerk's brand font */
 
 .tl-vercel {
   transform: translateX(-50%);
+  font-family: 'Geist', sans-serif; /* Geist — Vercel's brand font */
 }
 
 /* Tenure badge — appears below each company label on hover */
