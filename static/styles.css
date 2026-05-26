@@ -156,6 +156,7 @@ a:hover {
   letter-spacing: 0.05em;
   white-space: nowrap;
   cursor: default;
+  user-select: none;
 }
 
 .tl-company svg {
