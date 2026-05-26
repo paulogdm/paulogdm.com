@@ -285,13 +285,17 @@ a:hover {
   content: '';
   position: absolute;
   bottom: -8px;
-  left: 10%; right: 10%;
+  /* Width-based sizing replaces scaleX() — avoids the Safari bug where
+     filter:blur and transform interact incorrectly on the same element. */
+  left: 12%; right: 12%;
   height: 18px;
   border-radius: 50%;
   filter: blur(18px);
   opacity: 0.55;
-  transform: scaleX(0.85);
-  transition: opacity 0.5s ease, transform 0.5s ease;
+  /* translateZ(0) forces a compositor layer so Safari doesn't clip the
+     blur to the element's own bounding box. */
+  transform: translateZ(0);
+  transition: opacity 0.5s ease, left 0.5s ease, right 0.5s ease;
 }
 
 .background-white .me-size::after { background: rgba(255, 255, 255, 0.65); }
@@ -299,7 +303,7 @@ a:hover {
 
 .me-size:hover::after {
   opacity: 0.2;
-  transform: scaleX(0.45);
+  left: 30%; right: 30%;
 }
 
 .me-photo {
