@@ -13,8 +13,8 @@
   let lights = $state(false);
 
   $effect(() => {
-    document.body.classList.toggle('background-white', lights);
-    document.body.classList.toggle('background-black', !lights);
+    document.documentElement.classList.toggle('theme-dark', lights);
+    document.documentElement.classList.toggle('theme-light', !lights);
   });
 
   function getCookie(name) {
@@ -87,15 +87,14 @@
 </svelte:head>
 
 <div class="container">
-  <div class="px-4 py-4 clearfix">
+  <div class="px-4 py-4">
     <button
       onclick={changeBackground}
-      class="lightbulb float-left animated fadeIn p-2 {lights ? 'mode-dark' : 'mode-light'}"
+      class="lightbulb animated fadeIn p-2 {lights ? 'mode-dark' : 'mode-light'}"
       aria-label="Toggle light/dark mode"
-      style="animation-delay: 0s"
     >
       {#key lights}
-        <span class="icon-swap-e">
+        <span class="icon-swap">
           <Icon icon={lights ? sunIcon : moonIcon} width="2em" />
         </span>
       {/key}
@@ -114,7 +113,7 @@
 
     <div class="my-5 py-2 animated fadeIn" style="animation-delay: 0.25s">
       <h1>paulogdm</h1>
-      <nav class="social-links mt-3" aria-label="Useful links">
+      <nav class="social-links mt-3" aria-label="Social media and contact links">
         <a class="mx-2" href="&#77;&#97;&#73;&#76;&#84;&#79;&#58;&#109;&#101;&#64;&#112;&#97;&#117;&#108;&#111;&#103;&#100;&#109;&#46;&#99;&#111;&#109;" target="_blank" rel="noopener noreferrer" aria-label="Email">
           <Icon icon={mailIcon} width="1.33em" />
         </a>

@@ -3,6 +3,26 @@
   box-sizing: border-box;
 }
 
+/* ── Design tokens ──────────────────────────────────────────── */
+:root {
+  --accent:      #FF6600;
+  --accent-glow: rgba(255, 102, 0, 0.25);
+  --accent-sun:  #FFD200;
+  --accent-moon: #0070F3;
+}
+
+html.theme-dark {
+  --bg:           #000000;
+  --text:         #FFFFFF;
+  --shadow-color: rgba(255, 255, 255, 0.65);
+}
+
+html.theme-light {
+  --bg:           #FFFFFF;
+  --text:         #000000;
+  --shadow-color: rgba(0, 0, 0, 0.4);
+}
+
 /* Fluid root: all rem-based sizes (spacing, icons, timeline labels) scale
    proportionally from 13px on narrow screens up to 16px at full width. */
 html {
@@ -14,6 +34,9 @@ body {
   font-family: 'Inter Variable', 'Inter', sans-serif;
   font-size: 1rem;
   line-height: 1.5;
+  background-color: var(--bg);
+  color: var(--text);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 h1 {
@@ -40,7 +63,7 @@ a {
 
 a:hover {
   text-decoration: none;
-  color: #FF6600;
+  color: var(--accent);
 }
 
 /* ── Bootstrap replacements ─────────────────────────────────── */
@@ -56,8 +79,6 @@ a:hover {
 .d-block     { display: block; }
 .text-center { text-align: center; }
 .mx-auto     { margin-left: auto; margin-right: auto; }
-.float-left  { float: left; }
-.clearfix::after { content: ""; display: table; clear: both; }
 
 .p-2  { padding: 0.5rem; }
 .px-4 { padding-left: 1.5rem; padding-right: 1.5rem; }
@@ -77,20 +98,7 @@ a:hover {
 .animated { animation-duration: 1s; animation-fill-mode: both; }
 .fadeIn   { animation-name: fadeIn; }
 
-/* ── Theme ──────────────────────────────────────────────────── */
-.background-white {
-  background-color: #000000;
-  transition: background-color 0.3s ease, color 0.3s ease;
-  color: #FFFFFF;
-}
-
-.background-black {
-  background-color: #FFFFFF;
-  transition: background-color 0.3s ease, color 0.3s ease;
-  color: #000000;
-}
-
-/* ── Lightbulb toggle ───────────────────────────────────────── */
+/* ── Theme toggle button ────────────────────────────────────── */
 .lightbulb {
   background: none;
   border: none;
@@ -108,19 +116,17 @@ a:hover {
 }
 
 /* Sun (dark mode) → yellow; Moon (light mode) → blue */
-.lightbulb.mode-dark:hover  { color: #FFD200; transition: color 0.2s ease; }
-.lightbulb.mode-light:hover { color: #0070F3; transition: color 0.2s ease; }
+.lightbulb.mode-dark:hover  { color: var(--accent-sun);  transition: color 0.2s ease; }
+.lightbulb.mode-light:hover { color: var(--accent-moon); transition: color 0.2s ease; }
 
 /* ── Icon swap animation — triggered by {#key} remount ─────── */
-
-/* E — blur dissolve */
-@keyframes icon-swap-e {
+@keyframes icon-swap {
   from { opacity: 0; filter: blur(6px); transform: scale(0.9); }
   to   { opacity: 1; filter: blur(0);   transform: scale(1);   }
 }
-.icon-swap-e {
+.icon-swap {
   display: inline-flex;
-  animation: icon-swap-e 0.3s ease-out both;
+  animation: icon-swap 0.3s ease-out both;
 }
 
 /* ── Career timeline ─────────────────────────────────────────── */
@@ -136,7 +142,7 @@ a:hover {
 /* Company labels above the track */
 .tl-labels {
   position: relative;
-  height: 1.5rem;
+  height: 2rem;
   margin-bottom: 1.1rem;
 }
 
@@ -175,7 +181,7 @@ a:hover {
   font-size: 1rem;
   letter-spacing: 0.06em;
   white-space: nowrap;
-  color: #FF6600;
+  color: var(--accent);
   pointer-events: none;
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
@@ -225,8 +231,8 @@ a:hover {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: #FF6600;
-  box-shadow: 0 0 4px 1px #FF6600, 0 0 10px 3px rgba(255, 102, 0, 0.25);
+  background: var(--accent);
+  box-shadow: 0 0 4px 1px var(--accent), 0 0 10px 3px var(--accent-glow);
 }
 
 /* Two expanding halos — inset: -1.5px starts them at the original 7px diameter */
@@ -236,7 +242,7 @@ a:hover {
   position: absolute;
   inset: -1.5px;
   border-radius: 50%;
-  background: #FF6600;
+  background: var(--accent);
   animation: spark-halo 2.5s ease-out infinite;
 }
 .tl-spark::after { animation-delay: 1.25s; }
@@ -266,7 +272,7 @@ a:hover {
   left: 0;
   transform: none;
   opacity: 0.8;
-  color: #FF6600;
+  color: var(--accent);
 }
 
 .tl-yr-end {
@@ -284,22 +290,20 @@ a:hover {
 .me-size::after {
   content: '';
   position: absolute;
-  bottom: -8px;
+  bottom: -0.5em;
   /* Width-based sizing replaces scaleX() — avoids the Safari bug where
      filter:blur and transform interact incorrectly on the same element. */
   left: 12%; right: 12%;
   height: 1.125em;
   border-radius: 50%;
-  filter: blur(18px);
+  filter: blur(1.125em);
   opacity: 0.55;
+  background: var(--shadow-color);
   /* translateZ(0) forces a compositor layer so Safari doesn't clip the
      blur to the element's own bounding box. */
   transform: translateZ(0);
   transition: opacity 0.5s ease, left 0.5s ease, right 0.5s ease;
 }
-
-.background-white .me-size::after { background: rgba(255, 255, 255, 0.65); }
-.background-black .me-size::after { background: rgba(0, 0, 0, 0.4); }
 
 .me-size:hover::after {
   opacity: 0.2;
@@ -321,7 +325,7 @@ a:hover {
 /* ── Reduced motion ─────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .animated,
-  .icon-swap-e {
+  .icon-swap {
     animation: none;
   }
 
