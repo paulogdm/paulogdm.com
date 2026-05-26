@@ -107,9 +107,20 @@ a:hover {
   border-radius: 4px;
 }
 
-.lightbulb:hover {
-  color: #FFD200;
-  transition: all 0.2s ease;
+/* Sun (dark mode) → yellow; Moon (light mode) → blue */
+.lightbulb.mode-dark:hover  { color: #FFD200; transition: color 0.2s ease; }
+.lightbulb.mode-light:hover { color: #0070F3; transition: color 0.2s ease; }
+
+/* ── Icon swap animation — triggered by {#key} remount ─────── */
+
+/* E — blur dissolve */
+@keyframes icon-swap-e {
+  from { opacity: 0; filter: blur(6px); transform: scale(0.9); }
+  to   { opacity: 1; filter: blur(0);   transform: scale(1);   }
+}
+.icon-swap-e {
+  display: inline-flex;
+  animation: icon-swap-e 0.3s ease-out both;
 }
 
 /* ── Career timeline ─────────────────────────────────────────── */
@@ -305,7 +316,8 @@ a:hover {
 
 /* ── Reduced motion ─────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  .animated {
+  .animated,
+  .icon-swap-e {
     animation: none;
   }
 
