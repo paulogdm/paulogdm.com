@@ -1,7 +1,8 @@
 <script>
   import { onMount } from 'svelte';
   import Icon from '@iconify/svelte';
-  import lightbulbIcon     from '@iconify-icons/lucide/lightbulb';
+  import sunIcon           from '@iconify-icons/lucide/sun';
+  import moonIcon          from '@iconify-icons/lucide/moon';
   import mailIcon          from '@iconify-icons/lucide/mail';
   import calendarIcon      from '@iconify-icons/lucide/calendar';
   import githubIcon        from '@iconify-icons/simple-icons/github';
@@ -93,7 +94,7 @@
       aria-label="Toggle light/dark mode"
       style="animation-delay: 0s"
     >
-      <Icon icon={lightbulbIcon} width="2em" />
+      <Icon icon={lights ? moonIcon : sunIcon} width="2em" />
     </button>
   </div>
 
