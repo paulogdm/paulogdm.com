@@ -137,7 +137,7 @@ a:hover {
 .tl-labels {
   position: relative;
   height: 1.5rem;
-  margin-bottom: 0.65rem;
+  margin-bottom: 1.1rem;
 }
 
 .tl-company {
@@ -168,7 +168,7 @@ a:hover {
 .tl-company::after {
   content: attr(data-tenure);
   position: absolute;
-  left: calc(100% + 0.4rem);
+  left: calc(100% + 0.9rem);
   top: 50%;
   transform: translateY(-50%) translateX(3px);
   opacity: 0;
