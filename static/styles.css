@@ -3,6 +3,12 @@
   box-sizing: border-box;
 }
 
+/* Fluid root: all rem-based sizes (spacing, icons, timeline labels) scale
+   proportionally from 13px on narrow screens up to 16px at full width. */
+html {
+  font-size: clamp(13px, 1.4vw, 16px);
+}
+
 body {
   margin: 0;
   font-family: 'Inter Variable', 'Inter', sans-serif;
@@ -108,7 +114,7 @@ a:hover {
 
 /* ── Career timeline ─────────────────────────────────────────── */
 .tl-section {
-  padding: 0 10% 3rem;
+  padding: 0 clamp(1rem, 8%, 10%) clamp(1.5rem, 4vw, 3rem);
 }
 
 .tl-wrap {
