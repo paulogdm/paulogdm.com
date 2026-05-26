@@ -153,13 +153,13 @@
         ctx.fillRect(0, 0, W, H);
 
         ctx.globalCompositeOperation = 'destination-out';
+        ctx.fillStyle = 'rgba(0,0,0,1)';
         for (const { sx, sy, bornAt } of sources) {
           if (elapsed < bornAt) continue;
           const rw = bornAt === 0 ? ringW : ringW * 0.7;
           ctx.beginPath();
           ctx.arc(sx, sy, r + rw / 2, 0, Math.PI * 2, false);
           ctx.arc(sx, sy, Math.max(0, r - rw / 2), 0, Math.PI * 2, true);
-          ctx.fillStyle = 'rgba(0,0,0,1)';
           ctx.fill('evenodd');
         }
         ctx.globalCompositeOperation = 'source-over';
@@ -171,8 +171,6 @@
           if (alpha < 0.01) continue;
 
           if (variant === 'rainbow') {
-            // createConicGradient: 2 fill calls instead of 72 stroke calls.
-            // The browser renders the full spectrum natively via GPU.
             const grad = ctx.createConicGradient(0, sx, sy);
             for (let i = 0; i <= 12; i++) grad.addColorStop(i / 12, `hsl(${(i / 12) * 360},100%,58%)`);
             ctx.fillStyle = grad;
@@ -409,7 +407,7 @@
         </div>
       </div>
       <div class="tl-track" aria-hidden="true">
-        <span class="tl-spark" role="button" tabindex="-1" onclick={launchSonar}></span>
+        <span class="tl-spark" onclick={launchSonar}></span>
         <span class="tl-vercel-seg" style="left: {vercelLeft}%; width: {vercelWidth}%"></span>
       </div>
       <div class="tl-years" aria-hidden="true">
