@@ -14,10 +14,19 @@
 
 <link rel="stylesheet" href="/styles.css">
 
+  <!-- Blocking theme script: reads cookie before first paint to prevent FOUC -->
+  <script>
+    (function () {
+      var m = document.cookie.match(/(^| )lights=([^;]+)/);
+      var dark = m ? m[2] === 'on' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.classList.add(dark ? 'theme-dark' : 'theme-light');
+    })();
+  </script>
+
   %sveltekit.head%
 </head>
 
-<body class="background-black" data-sveltekit-preload-data="hover">
+<body data-sveltekit-preload-data="hover">
   <div style="display: contents">%sveltekit.body%</div>
 </body>
 </html>
