@@ -296,6 +296,11 @@ a:hover {
   transform: none;
   opacity: 0.8;
   color: var(--accent);
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tl-labels:has(.tl-clerk:hover) ~ .tl-years .tl-yr-now {
+  opacity: 1;
 }
 
 .tl-yr-end {
