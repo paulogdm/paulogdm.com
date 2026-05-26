@@ -66,17 +66,18 @@
     if (r < 1.5)  return 'mono';
     if (r < 2.0)  return 'matrix';
     if (r < 2.5)  return 'void';
-    if (r < 3.0)  return 'glitch';
-    if (r < 3.5)  return 'ripple';
-    if (r < 4.0)  return 'gold';
-    if (r < 4.5)  return 'slow-burn';
-    if (r < 5.0)  return 'ghost';
-    if (r < 5.5)  return 'vercel';
-    if (r < 6.0)  return 'clerk';
+    if (r < 3.0)  return 'air-wave';
+    if (r < 3.5)  return 'glitch';
+    if (r < 4.0)  return 'ripple';
+    if (r < 4.5)  return 'gold';
+    if (r < 5.0)  return 'slow-burn';
+    if (r < 5.5)  return 'ghost';
+    if (r < 6.0)  return 'vercel';
+    if (r < 6.5)  return 'clerk';
     return 'default';
   }
 
-  const ALL_VARIANTS = ['default', 'rainbow', 'mono', 'matrix', 'void', 'glitch', 'ripple', 'gold', 'slow-burn', 'ghost', 'vercel', 'clerk'];
+  const ALL_VARIANTS = ['default', 'rainbow', 'mono', 'matrix', 'void', 'air-wave', 'glitch', 'ripple', 'gold', 'slow-burn', 'ghost', 'vercel', 'clerk'];
 
   function triggerAllWaves() {
     const spark = document.querySelector('.tl-spark');
@@ -142,9 +143,73 @@
       const r = elapsed / 1000 * SPEED;
       ctx.clearRect(0, 0, W, H);
 
-      if (variant === 'void') {
-        // Dark overlay covers the page; destination-out punches transparent ring
-        // annuli through it, revealing the page in a growing circular window.
+      if (variant === 'air-wave') {
+        // Organic water wave: noise-displaced rings + caustic highlights.
+        // Path traced with layered sine noise so edges ripple like real water.
+        // Caustic spots pulse and drift along the wave crest.
+        const STEPS = 180;
+        for (const { sx, sy, bornAt } of sources) {
+          if (elapsed < bornAt) continue;
+          const t    = elapsed - bornAt;
+          const a    = Math.max(0, 1 - t / (DURATION - bornAt));
+          if (a < 0.01) continue;
+          const tSec = t / 1000;
+
+          for (let n = 0; n < 6; n++) {
+            const rn        = r - n * 16;
+            if (rn < 1) continue;
+            const decay     = Math.pow(1 - n / 6, 1.8);
+            const ringAlpha = a * decay;
+            if (ringAlpha < 0.005) continue;
+
+            ctx.beginPath();
+            for (let i = 0; i <= STEPS; i++) {
+              const angle = (i / STEPS) * Math.PI * 2;
+              const noise =
+                Math.sin(angle * 5  + tSec * 2.1) * 4 +
+                Math.sin(angle * 11 - tSec * 1.3) * 2 +
+                Math.cos(angle * 3  + tSec * 0.7) * 3;
+              const pr = rn + noise * (1 - n * 0.1);
+              const px = sx + Math.cos(angle) * pr;
+              const py = sy + Math.sin(angle) * pr;
+              i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+            }
+            ctx.closePath();
+
+            if (n === 0) {
+              ctx.lineWidth   = 2.5;
+              ctx.strokeStyle = `rgba(200,240,255,${ringAlpha.toFixed(3)})`;
+              ctx.shadowBlur  = 14;
+              ctx.shadowColor = `rgba(140,220,255,${(ringAlpha * 0.6).toFixed(3)})`;
+            } else {
+              ctx.lineWidth   = 1.5;
+              ctx.strokeStyle = `rgba(90,180,255,${(ringAlpha * 0.7).toFixed(3)})`;
+              ctx.shadowBlur  = 6;
+              ctx.shadowColor = `rgba(90,180,255,${(ringAlpha * 0.3).toFixed(3)})`;
+            }
+            ctx.stroke();
+          }
+
+          // Caustic highlights — bright spots pulsing & drifting on the crest
+          for (let c = 0; c < 10; c++) {
+            const angle     = (c / 10) * Math.PI * 2 + Math.sin(tSec * 3 + c * 1.8) * 0.25;
+            const cr        = r + Math.sin(tSec * 4 + c * 2.3) * 7;
+            const pulse     = 0.5 + 0.5 * Math.abs(Math.sin(tSec * 5 + c * 1.2));
+            const ca        = a * pulse * 0.85;
+
+            ctx.beginPath();
+            ctx.arc(sx + Math.cos(angle) * cr, sy + Math.sin(angle) * cr, 1 + pulse * 2.5, 0, Math.PI * 2);
+            ctx.fillStyle   = `rgba(255,255,255,${ca.toFixed(3)})`;
+            ctx.shadowBlur  = 12;
+            ctx.shadowColor = `rgba(220,248,255,${(ca * 0.9).toFixed(3)})`;
+            ctx.fill();
+          }
+
+          ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
+        }
+      } else if (variant === 'void') {
+        // Dark overlay; destination-out punches transparent ring annuli through
+        // it, revealing the page in an expanding circular window.
         const globalAlpha = Math.max(0, 1 - elapsed / DURATION);
         const ringW = 40;
 
