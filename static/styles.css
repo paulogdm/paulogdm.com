@@ -145,15 +145,15 @@ a:hover {
   display: flex;
   align-items: center;
   gap: 0.3rem;
-  font-size: 0.68rem;
+  font-size: 0.8rem;
   letter-spacing: 0.05em;
   white-space: nowrap;
   cursor: default;
 }
 
 .tl-company svg {
-  width: 11px;
-  height: 11px;
+  width: 13px;
+  height: 13px;
   flex-shrink: 0;
   opacity: 0.85;
 }
@@ -256,7 +256,7 @@ a:hover {
 
 .tl-yr {
   position: absolute;
-  font-size: 0.58rem;
+  font-size: 0.68rem;
   letter-spacing: 0.07em;
   opacity: 0.3;
   transform: translateX(-50%);
