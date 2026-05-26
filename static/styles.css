@@ -187,6 +187,10 @@ a:hover {
   color: var(--accent);
   pointer-events: none;
   transition: opacity 0.2s ease, transform 0.2s ease;
+  padding: 0.15em 0.6em;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
+  z-index: 10;
 }
 
 .tl-company:hover::after {
