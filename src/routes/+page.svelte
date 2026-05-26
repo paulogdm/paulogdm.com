@@ -90,11 +90,15 @@
   <div class="px-4 py-4 clearfix">
     <button
       onclick={changeBackground}
-      class="lightbulb float-left animated fadeIn p-2"
+      class="lightbulb float-left animated fadeIn p-2 {lights ? 'mode-dark' : 'mode-light'}"
       aria-label="Toggle light/dark mode"
       style="animation-delay: 0s"
     >
-      <Icon icon={lights ? moonIcon : sunIcon} width="2em" />
+      {#key lights}
+        <span class="icon-swap">
+          <Icon icon={lights ? sunIcon : moonIcon} width="2em" />
+        </span>
+      {/key}
     </button>
   </div>
 
