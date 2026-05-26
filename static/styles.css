@@ -165,10 +165,11 @@ a:hover {
   opacity: 0.85;
 }
 
-.tl-clerk  { left: 0; }
+.tl-clerk  { left: 0; } /* Inter — Clerk's brand font */
 
 .tl-vercel {
   transform: translateX(-50%);
+  font-family: 'Geist', sans-serif; /* Geist — Vercel's brand font */
 }
 
 /* Tenure badge — appears below each company label on hover */
