@@ -39,7 +39,257 @@
       lights = window.matchMedia('(prefers-color-scheme: dark)').matches;
       setCookie('lights', lights ? 'on' : 'off');
     }
+
+    let keyBuf = '';
+    function onKey(e) {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      keyBuf = (keyBuf + e.key.toLowerCase()).slice(-6);
+      if (keyBuf.endsWith('sonar'))  { keyBuf = ''; triggerAllWaves(); return; }
+      if (keyBuf.endsWith('vercel') || keyBuf.endsWith('clerk')) {
+        const variant = keyBuf.endsWith('vercel') ? 'vercel' : 'clerk';
+        keyBuf = '';
+        const spark = document.querySelector('.tl-spark');
+        const rect  = spark.getBoundingClientRect();
+        spawnWave(rect.left + rect.width / 2, rect.top + rect.height / 2, variant);
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   });
+
+  let activeSonars = 0;
+  const MAX_SONARS = 20;
+
+  function pickVariant() {
+    const r = Math.random() * 100;
+    if (r < 0.5)  return 'rainbow';
+    if (r < 1.5)  return 'mono';
+    if (r < 2.0)  return 'matrix';
+    if (r < 2.5)  return 'void';
+    if (r < 3.0)  return 'glitch';
+    if (r < 3.5)  return 'ripple';
+    if (r < 4.0)  return 'gold';
+    if (r < 4.5)  return 'slow-burn';
+    if (r < 5.0)  return 'ghost';
+    if (r < 5.5)  return 'vercel';
+    if (r < 6.0)  return 'clerk';
+    return 'default';
+  }
+
+  const ALL_VARIANTS = ['default', 'rainbow', 'mono', 'matrix', 'void', 'glitch', 'ripple', 'gold', 'slow-burn', 'ghost', 'vercel', 'clerk'];
+
+  function triggerAllWaves() {
+    const spark = document.querySelector('.tl-spark');
+    const rect  = spark.getBoundingClientRect();
+    const cx    = rect.left + rect.width / 2;
+    const cy    = rect.top  + rect.height / 2;
+    ALL_VARIANTS.forEach((v, i) => setTimeout(() => spawnWave(cx, cy, v), i * 1000));
+  }
+
+  function launchSonar(event) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    spawnWave(rect.left + rect.width / 2, rect.top + rect.height / 2, null);
+  }
+
+  function spawnWave(cx, cy, forcedVariant) {
+    if (activeSonars >= MAX_SONARS) return;
+    activeSonars++;
+
+    const canvas = document.createElement('canvas');
+    canvas.className = 'sonar-canvas';
+    const W = canvas.width  = window.innerWidth;
+    const H = canvas.height = window.innerHeight;
+    document.body.appendChild(canvas);
+    const ctx = canvas.getContext('2d');
+
+    const variant  = forcedVariant ?? pickVariant();
+    const DURATION = variant === 'slow-burn' ? 12000 : 5000;
+    const SPEED    = variant === 'matrix'    ? 440
+                   : variant === 'slow-burn' ? 55
+                   : variant === 'vercel'    ? 260
+                   : 220;
+    const isDark   = document.documentElement.classList.contains('theme-dark');
+
+    const highlightEl = variant === 'vercel' ? document.querySelector('.tl-vercel')
+                      : variant === 'clerk'  ? document.querySelector('.tl-clerk')
+                      : null;
+    if (highlightEl) highlightEl.classList.add('tl-company--lit');
+
+    const s = (dist) => dist / SPEED * 1000;
+    const sources = [
+      { sx: cx,       sy: cy,       a: 1.00, bornAt: 0                              },
+      { sx: -cx,      sy: cy,       a: 0.70, bornAt: s(cx)                          },
+      { sx: 2*W-cx,   sy: cy,       a: 0.70, bornAt: s(W - cx)                      },
+      { sx: cx,       sy: -cy,      a: 0.70, bornAt: s(cy)                          },
+      { sx: cx,       sy: 2*H-cy,   a: 0.70, bornAt: s(H - cy)                      },
+      { sx: -cx,      sy: -cy,      a: 0.40, bornAt: s(Math.hypot(cx, cy))          },
+      { sx: 2*W-cx,   sy: -cy,      a: 0.40, bornAt: s(Math.hypot(W-cx, cy))       },
+      { sx: -cx,      sy: 2*H-cy,   a: 0.40, bornAt: s(Math.hypot(cx, H-cy))       },
+      { sx: 2*W-cx,   sy: 2*H-cy,   a: 0.40, bornAt: s(Math.hypot(W-cx, H-cy))    },
+    ];
+
+    const start = performance.now();
+
+    function tick(now) {
+      const elapsed = now - start;
+      if (elapsed >= DURATION) {
+        canvas.remove();
+        activeSonars--;
+        if (highlightEl) highlightEl.classList.remove('tl-company--lit');
+        return;
+      }
+
+      const r = elapsed / 1000 * SPEED;
+      ctx.clearRect(0, 0, W, H);
+
+      if (variant === 'void') {
+        // Dark overlay covers the page; destination-out punches transparent ring
+        // annuli through it, revealing the page in a growing circular window.
+        const globalAlpha = Math.max(0, 1 - elapsed / DURATION);
+        const ringW = 40;
+
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = `rgba(0,0,0,${(0.82 * globalAlpha).toFixed(3)})`;
+        ctx.fillRect(0, 0, W, H);
+
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.fillStyle = 'rgba(0,0,0,1)';
+        for (const { sx, sy, bornAt } of sources) {
+          if (elapsed < bornAt) continue;
+          const rw = bornAt === 0 ? ringW : ringW * 0.7;
+          ctx.beginPath();
+          ctx.arc(sx, sy, r + rw / 2, 0, Math.PI * 2, false);
+          ctx.arc(sx, sy, Math.max(0, r - rw / 2), 0, Math.PI * 2, true);
+          ctx.fill('evenodd');
+        }
+        ctx.globalCompositeOperation = 'source-over';
+      } else {
+        for (const { sx, sy, a, bornAt } of sources) {
+          if (elapsed < bornAt) continue;
+          const remaining = DURATION - bornAt;
+          const alpha = a * Math.max(0, 1 - (elapsed - bornAt) / remaining);
+          if (alpha < 0.01) continue;
+
+          if (variant === 'rainbow') {
+            const grad = ctx.createConicGradient(0, sx, sy);
+            for (let i = 0; i <= 12; i++) grad.addColorStop(i / 12, `hsl(${(i / 12) * 360},100%,58%)`);
+            ctx.fillStyle = grad;
+
+            // Glow pass — wider ring, faint
+            ctx.globalAlpha = alpha * 0.28;
+            ctx.beginPath();
+            ctx.arc(sx, sy, r + 12, 0, Math.PI * 2, false);
+            ctx.arc(sx, sy, Math.max(1, r - 12), 0, Math.PI * 2, true);
+            ctx.fill('evenodd');
+
+            // Main ring
+            ctx.globalAlpha = alpha;
+            ctx.beginPath();
+            ctx.arc(sx, sy, r + 3, 0, Math.PI * 2, false);
+            ctx.arc(sx, sy, Math.max(1, r - 3), 0, Math.PI * 2, true);
+            ctx.fill('evenodd');
+
+            ctx.globalAlpha = 1;
+            continue;
+          }
+
+          if (variant === 'glitch') {
+            // Chromatic aberration: red and cyan channels drift apart each 180ms
+            const phase = Math.floor(elapsed / 180);
+            const dx = Math.sin(phase * 2.7) * 7;
+            const dy = Math.cos(phase * 1.9) * 5;
+            ctx.lineWidth = 1; ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
+            ctx.beginPath(); ctx.arc(sx - dx, sy - dy, r, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(255,60,60,${(alpha * 0.85).toFixed(3)})`; ctx.stroke();
+            ctx.beginPath(); ctx.arc(sx + dx, sy + dy, r, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(60,255,220,${(alpha * 0.85).toFixed(3)})`; ctx.stroke();
+            continue;
+          }
+
+          if (variant === 'ripple') {
+            // Three concentric rings spaced 28px apart, trailing off in opacity
+            ctx.lineWidth = 1; ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
+            for (const [offset, fade] of [[0, 1.0], [-28, 0.55], [-56, 0.25]]) {
+              const rr = r + offset;
+              if (rr < 1) continue;
+              ctx.beginPath(); ctx.arc(sx, sy, rr, 0, Math.PI * 2);
+              ctx.strokeStyle = `rgba(255,102,0,${(alpha * fade).toFixed(3)})`; ctx.stroke();
+            }
+            continue;
+          }
+
+          if (variant === 'vercel') {
+            if (bornAt !== 0) continue;  // no reflections — single expanding triangle
+            // Expanding equilateral triangle — matches Vercel's ▲ logo orientation.
+            // r is the circumradius (center → vertex), same scale as the circle waves.
+            const h = r * Math.sqrt(3) / 2;  // half-width at base
+            ctx.beginPath();
+            ctx.moveTo(sx,         sy - r);          // top vertex
+            ctx.lineTo(sx + h,     sy + r / 2);      // bottom-right
+            ctx.lineTo(sx - h,     sy + r / 2);      // bottom-left
+            ctx.closePath();
+            ctx.strokeStyle = `rgba(255,255,255,${alpha.toFixed(3)})`;
+            ctx.lineWidth   = 2;
+            ctx.shadowBlur  = 20;
+            ctx.shadowColor = `rgba(255,255,255,${(alpha * 0.6).toFixed(3)})`;
+            ctx.stroke();
+            ctx.shadowBlur  = 0;
+            ctx.shadowColor = 'transparent';
+            continue;
+          }
+
+          let color, lineWidth;
+
+          if (variant === 'mono') {
+            const rgb = isDark ? '255,255,255' : '0,0,0';
+            color     = `rgba(${rgb},${alpha.toFixed(3)})`;
+            lineWidth = 1;
+            ctx.shadowBlur  = 0;
+            ctx.shadowColor = 'transparent';
+          } else if (variant === 'matrix') {
+            color          = `rgba(0,255,65,${alpha.toFixed(3)})`;
+            lineWidth      = 2;
+            ctx.shadowBlur  = 18;
+            ctx.shadowColor = `rgba(0,255,65,${(alpha * 0.9).toFixed(3)})`;
+          } else if (variant === 'gold') {
+            color          = `rgba(255,210,0,${alpha.toFixed(3)})`;
+            lineWidth      = 2;
+            ctx.shadowBlur  = 14;
+            ctx.shadowColor = `rgba(255,210,0,${(alpha * 0.7).toFixed(3)})`;
+          } else if (variant === 'ghost') {
+            color          = `rgba(255,255,255,${(alpha * 0.07).toFixed(3)})`;
+            lineWidth      = 1;
+            ctx.shadowBlur  = 0;
+            ctx.shadowColor = 'transparent';
+          } else if (variant === 'clerk') {
+            color          = `rgba(108,71,255,${alpha.toFixed(3)})`;
+            lineWidth      = 2;
+            ctx.shadowBlur  = 14;
+            ctx.shadowColor = `rgba(108,71,255,${(alpha * 0.7).toFixed(3)})`;
+          } else {
+            // default + slow-burn share the same orange look
+            color     = `rgba(255,102,0,${alpha.toFixed(3)})`;
+            lineWidth = 1;
+            ctx.shadowBlur  = 0;
+            ctx.shadowColor = 'transparent';
+          }
+
+          ctx.beginPath();
+          ctx.arc(sx, sy, r, 0, Math.PI * 2);
+          ctx.strokeStyle = color;
+          ctx.lineWidth   = lineWidth;
+          ctx.stroke();
+        }
+
+        ctx.shadowBlur  = 0;
+        ctx.shadowColor = 'transparent';
+      }
+
+      requestAnimationFrame(tick);
+    }
+
+    requestAnimationFrame(tick);
+  }
 
   // ── Timeline math ────────────────────────────────────────────
   // Right edge is fixed at Jan 2018. Left edge is "now", clamped
@@ -157,7 +407,7 @@
         </div>
       </div>
       <div class="tl-track" aria-hidden="true">
-        <span class="tl-spark"></span>
+        <span class="tl-spark" onclick={launchSonar}></span>
         <span class="tl-vercel-seg" style="left: {vercelLeft}%; width: {vercelWidth}%"></span>
       </div>
       <div class="tl-years" aria-hidden="true">
