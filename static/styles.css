@@ -194,6 +194,23 @@ a:hover {
   transform: translateY(-50%) translateX(0);
 }
 
+/* When any company is hovered, fade out the others */
+.tl-company {
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.tl-labels:has(.tl-company:hover) .tl-company:not(:hover) {
+  opacity: 0;
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Highlight the relevant timeline piece on hover */
+.tl-labels:has(.tl-vercel:hover) ~ .tl-track .tl-vercel-seg {
+  opacity: 1;
+}
+.tl-labels:has(.tl-clerk:hover) ~ .tl-track .tl-spark {
+  box-shadow: 0 0 8px 3px var(--accent), 0 0 22px 10px var(--accent-glow);
+}
+
 /* The track line */
 .tl-track {
   position: relative;
@@ -207,6 +224,8 @@ a:hover {
   height: 100%;
   background: currentColor;
   opacity: 0.5;
+  transition: background 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity   0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Tick marks at segment endpoints */
@@ -236,6 +255,7 @@ a:hover {
   border-radius: 50%;
   background: var(--accent);
   box-shadow: 0 0 4px 1px var(--accent), 0 0 10px 3px var(--accent-glow);
+  transition: box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Two expanding halos — inset: -1.5px starts them at the original 7px diameter */
