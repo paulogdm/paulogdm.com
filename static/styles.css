@@ -1,3 +1,24 @@
+/* ── Fluid scale (5K-safe) ───────────────────────────────────── */
+:root {
+  /* Typography */
+  --text-xs:   clamp(0.6rem,   0.55rem + 0.25vw, 0.75rem);
+  --text-sm:   clamp(0.7rem,   0.65rem + 0.3vw,  0.9rem);
+  --text-base: clamp(1rem,     0.9rem  + 0.5vw,  1.35rem);
+  --text-lg:   clamp(1.125rem, 1rem    + 0.6vw,  1.6rem);
+  --text-xl:   clamp(1.25rem,  1.1rem  + 0.75vw, 1.875rem);
+  --text-2xl:  clamp(1.5rem,   1.2rem  + 1.5vw,  2.75rem);
+  --text-3xl:  clamp(1.875rem, 1.5rem  + 2vw,    3.75rem);
+  --text-4xl:  clamp(2rem,     1.6rem  + 2.5vw,  5rem);
+
+  /* Spacing */
+  --space-xs:  clamp(0.25rem, 0.5vw,  0.75rem);
+  --space-sm:  clamp(0.5rem,  1vw,    1rem);
+  --space-md:  clamp(1rem,    2vw,    2rem);
+  --space-lg:  clamp(1.5rem,  3vw,    4rem);
+  --space-xl:  clamp(2rem,    5vw,    8rem);
+  --space-2xl: clamp(3rem,    8vw,    14rem);
+}
+
 /* ── Reset / base ───────────────────────────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;
@@ -6,12 +27,12 @@
 body {
   margin: 0;
   font-family: 'Inter Variable', 'Inter', sans-serif;
-  font-size: 1rem;
+  font-size: var(--text-base);
   line-height: 1.5;
 }
 
 h1 {
-  font-size: 2.5rem;
+  font-size: var(--text-4xl);
   font-weight: 300;
   margin-top: 0;
   margin-bottom: 0.5rem;
@@ -19,7 +40,7 @@ h1 {
 }
 
 .social-links {
-  font-size: 1rem;
+  font-size: var(--text-base);
   font-weight: 300;
   margin-top: 0;
   margin-bottom: 0.5rem;
@@ -39,12 +60,11 @@ a:hover {
 
 /* ── Bootstrap replacements ─────────────────────────────────── */
 .container {
-  width: 100%;
-  max-width: 960px;
+  width: min(92vw, 1400px);
   margin-left: auto;
   margin-right: auto;
-  padding-left: 1rem;
-  padding-right: 1rem;
+  padding-left: var(--space-md);
+  padding-right: var(--space-md);
 }
 
 .d-block     { display: block; }
@@ -108,7 +128,7 @@ a:hover {
 
 /* ── Career timeline ─────────────────────────────────────────── */
 .tl-section {
-  padding: 0 10% 3rem;
+  padding: 0 10% var(--space-lg);
 }
 
 .tl-wrap {
@@ -128,7 +148,7 @@ a:hover {
   display: flex;
   align-items: center;
   gap: 0.3rem;
-  font-size: 0.68rem;
+  font-size: var(--text-xs);
   letter-spacing: 0.05em;
   white-space: nowrap;
   cursor: default;
@@ -155,7 +175,7 @@ a:hover {
   top: 50%;
   transform: translateY(-50%) translateX(3px);
   opacity: 0;
-  font-size: 0.58rem;
+  font-size: var(--text-xs);
   letter-spacing: 0.06em;
   white-space: nowrap;
   color: #FF6600;
@@ -239,7 +259,7 @@ a:hover {
 
 .tl-yr {
   position: absolute;
-  font-size: 0.58rem;
+  font-size: var(--text-xs);
   letter-spacing: 0.07em;
   opacity: 0.3;
   transform: translateX(-50%);
@@ -287,7 +307,7 @@ a:hover {
 
 .me-photo {
   border-radius: 50%;
-  height: 200px;
+  height: clamp(140px, 12vw, 280px);
   width: auto;
   user-select: none;
   transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
