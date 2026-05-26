@@ -95,7 +95,7 @@
       style="animation-delay: 0s"
     >
       {#key lights}
-        <span class="icon-swap">
+        <span class="icon-swap-e">
           <Icon icon={lights ? sunIcon : moonIcon} width="2em" />
         </span>
       {/key}
