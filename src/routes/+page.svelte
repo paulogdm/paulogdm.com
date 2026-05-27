@@ -255,10 +255,23 @@
             ctx.shadowBlur  = 14;
             ctx.shadowColor = `rgba(255,210,0,${(alpha * 0.7).toFixed(3)})`;
           } else if (variant === 'ghost') {
-            color          = `rgba(180,120,255,${(alpha * 0.45).toFixed(3)})`;
-            lineWidth      = 2;
-            ctx.shadowBlur  = 22;
-            ctx.shadowColor = `rgba(160,80,255,${(alpha * 0.6).toFixed(3)})`;
+            // Three-pass layered glow: wide bloom → mid halo → bright core
+            const layers = [
+              { blur: 48, width: 12, color: `rgba(160,60,255,${(alpha * 0.18).toFixed(3)})` },
+              { blur: 22, width: 5,  color: `rgba(190,100,255,${(alpha * 0.45).toFixed(3)})` },
+              { blur: 8,  width: 2,  color: `rgba(230,180,255,${(alpha * 0.9).toFixed(3)})` },
+            ];
+            for (const layer of layers) {
+              ctx.beginPath();
+              ctx.arc(sx, sy, r, 0, Math.PI * 2);
+              ctx.lineWidth   = layer.width;
+              ctx.strokeStyle = layer.color;
+              ctx.shadowBlur  = layer.blur;
+              ctx.shadowColor = `rgba(150,50,255,${(alpha * 0.7).toFixed(3)})`;
+              ctx.stroke();
+            }
+            ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
+            continue;
           } else if (variant === 'clerk') {
             color          = `rgba(108,71,255,${alpha.toFixed(3)})`;
             lineWidth      = 2;
