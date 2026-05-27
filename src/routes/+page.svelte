@@ -45,6 +45,13 @@
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       keyBuf = (keyBuf + e.key.toLowerCase()).slice(-6);
       if (keyBuf.endsWith('sonar'))  { keyBuf = ''; triggerAllWaves(); return; }
+      if (keyBuf.endsWith('matrix')) {
+        keyBuf = '';
+        const spark = document.querySelector('.tl-spark');
+        const rect  = spark.getBoundingClientRect();
+        spawnWave(rect.left + rect.width / 2, rect.top + rect.height / 2, 'matrix');
+        return;
+      }
       if (keyBuf.endsWith('vercel') || keyBuf.endsWith('clerk')) {
         const variant = keyBuf.endsWith('vercel') ? 'vercel' : 'clerk';
         keyBuf = '';
@@ -58,7 +65,7 @@
   });
 
   let activeSonars = 0;
-  const MAX_SONARS = 20;
+  const MAX_SONARS = 3;
 
   function pickVariant() {
     const r = Math.random() * 100;
@@ -69,21 +76,20 @@
     if (r < 3.0)  return 'glitch';
     if (r < 3.5)  return 'ripple';
     if (r < 4.0)  return 'gold';
-    if (r < 4.5)  return 'slow-burn';
-    if (r < 5.0)  return 'ghost';
-    if (r < 5.5)  return 'vercel';
-    if (r < 6.0)  return 'clerk';
+    if (r < 4.5)  return 'ghost';
+    if (r < 5.0)  return 'vercel';
+    if (r < 5.5)  return 'clerk';
     return 'default';
   }
 
-  const ALL_VARIANTS = ['default', 'rainbow', 'mono', 'matrix', 'void', 'glitch', 'ripple', 'gold', 'slow-burn', 'ghost', 'vercel', 'clerk'];
+  const ALL_VARIANTS = ['default', 'rainbow', 'mono', 'matrix', 'void', 'glitch', 'ripple', 'gold', 'ghost', 'vercel', 'clerk'];
 
   function triggerAllWaves() {
     const spark = document.querySelector('.tl-spark');
     const rect  = spark.getBoundingClientRect();
     const cx    = rect.left + rect.width / 2;
     const cy    = rect.top  + rect.height / 2;
-    ALL_VARIANTS.forEach((v, i) => setTimeout(() => spawnWave(cx, cy, v), i * 1000));
+    ALL_VARIANTS.forEach((v, i) => setTimeout(() => spawnWave(cx, cy, v, true), i * 1000));
   }
 
   function launchSonar(event) {
@@ -91,8 +97,79 @@
     spawnWave(rect.left + rect.width / 2, rect.top + rect.height / 2, null);
   }
 
-  function spawnWave(cx, cy, forcedVariant) {
-    if (activeSonars >= MAX_SONARS) return;
+  // ── MATRIX RAIN ─────────────────────────────────────────────────────────────
+  // Full-page falling-character overlay triggered alongside the matrix wave.
+  // Remove the spawnMatrixRain() call in spawnWave and this entire block to
+  // disable the effect without touching anything else.
+  function spawnMatrixRain() {
+    const DURATION  = 8000;
+    const CHARS     = 'ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ0123456789';
+    const FONT_SIZE = 14;
+
+    const canvas  = document.createElement('canvas');
+    canvas.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:9998;';
+    const W = canvas.width  = window.innerWidth;
+    const H = canvas.height = window.innerHeight;
+    document.body.appendChild(canvas);
+    const ctx = canvas.getContext('2d');
+
+    const cols     = Math.floor(W / FONT_SIZE);
+    const drops    = Array.from({ length: cols }, () => Math.random() * -H / FONT_SIZE | 0);
+    const headChar = Array.from({ length: cols }, () => CHARS[Math.random() * CHARS.length | 0]);
+    const bodyChar = Array.from({ length: cols }, () => CHARS[Math.random() * CHARS.length | 0]);
+    const start    = performance.now();
+    let frame      = 0;
+
+    function tick(now) {
+      const elapsed  = now - start;
+      if (elapsed >= DURATION) { canvas.remove(); return; }
+
+      const fadeOut = elapsed > 5000 ? 1 - (elapsed - 5000) / 3000 : 1;
+
+      // Fade the whole canvas element so the page shows through
+      canvas.style.opacity = fadeOut;
+
+      // Semi-transparent fill for the trailing glow effect
+      ctx.fillStyle = 'rgba(0,0,0,0.05)';
+      ctx.fillRect(0, 0, W, H);
+
+      ctx.font = `${FONT_SIZE}px monospace`;
+
+      // Advance drops every 6th frame (~10fps movement at 60fps display)
+      const advance = (frame % 6 === 0);
+      frame++;
+
+      for (let i = 0; i < drops.length; i++) {
+        const x = i * FONT_SIZE;
+        const y = drops[i] * FONT_SIZE;
+
+        if (advance) {
+          headChar[i] = CHARS[Math.random() * CHARS.length | 0];
+          bodyChar[i] = CHARS[Math.random() * CHARS.length | 0];
+        }
+
+        // Bright head character
+        ctx.fillStyle = `rgba(180,255,180,${0.95 * fadeOut})`;
+        ctx.fillText(headChar[i], x, y);
+
+        // Column body — dimmer green
+        ctx.fillStyle = `rgba(0,255,65,${0.55 * fadeOut})`;
+        ctx.fillText(bodyChar[i], x, y - FONT_SIZE);
+
+        if (advance) {
+          if (y > H && Math.random() > 0.975) drops[i] = 0;
+          else drops[i]++;
+        }
+      }
+
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+  // ── END MATRIX RAIN ──────────────────────────────────────────────────────────
+
+  function spawnWave(cx, cy, forcedVariant, bypassLimit = false) {
+    if (!bypassLimit && activeSonars >= MAX_SONARS) return;
     activeSonars++;
 
     const canvas = document.createElement('canvas');
@@ -103,10 +180,10 @@
     const ctx = canvas.getContext('2d');
 
     const variant  = forcedVariant ?? pickVariant();
-    const DURATION = variant === 'slow-burn' ? 12000 : 5000;
-    const SPEED    = variant === 'matrix'    ? 440
-                   : variant === 'slow-burn' ? 55
-                   : variant === 'vercel'    ? 260
+    if (variant === 'matrix') spawnMatrixRain();
+    const DURATION = 5000;
+    const SPEED    = variant === 'matrix' ? 440
+                   : variant === 'vercel' ? 260
                    : 220;
     const isDark   = document.documentElement.classList.contains('theme-dark');
 
@@ -257,17 +334,30 @@
             ctx.shadowBlur  = 14;
             ctx.shadowColor = `rgba(255,210,0,${(alpha * 0.7).toFixed(3)})`;
           } else if (variant === 'ghost') {
-            color          = `rgba(255,255,255,${(alpha * 0.07).toFixed(3)})`;
-            lineWidth      = 1;
-            ctx.shadowBlur  = 0;
-            ctx.shadowColor = 'transparent';
+            // Three-pass layered glow: wide bloom → mid halo → bright core
+            const layers = [
+              { blur: 48, width: 12, color: `rgba(160,60,255,${(alpha * 0.18).toFixed(3)})` },
+              { blur: 22, width: 5,  color: `rgba(190,100,255,${(alpha * 0.45).toFixed(3)})` },
+              { blur: 8,  width: 2,  color: `rgba(230,180,255,${(alpha * 0.9).toFixed(3)})` },
+            ];
+            for (const layer of layers) {
+              ctx.beginPath();
+              ctx.arc(sx, sy, r, 0, Math.PI * 2);
+              ctx.lineWidth   = layer.width;
+              ctx.strokeStyle = layer.color;
+              ctx.shadowBlur  = layer.blur;
+              ctx.shadowColor = `rgba(150,50,255,${(alpha * 0.7).toFixed(3)})`;
+              ctx.stroke();
+            }
+            ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
+            continue;
           } else if (variant === 'clerk') {
             color          = `rgba(108,71,255,${alpha.toFixed(3)})`;
             lineWidth      = 2;
             ctx.shadowBlur  = 14;
             ctx.shadowColor = `rgba(108,71,255,${(alpha * 0.7).toFixed(3)})`;
           } else {
-            // default + slow-burn share the same orange look
+            // default
             color     = `rgba(255,102,0,${alpha.toFixed(3)})`;
             lineWidth = 1;
             ctx.shadowBlur  = 0;
