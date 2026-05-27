@@ -644,12 +644,7 @@
         </div>
       </div>
       <div class="tl-track" aria-hidden="true">
-        <span
-          class="tl-spark"
-          tabindex="0"
-          onclick={launchSonar}
-          onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && launchSonar(e)}
-        ></span>
+        <span class="tl-spark" onclick={launchSonar}></span>
         <span class="tl-vercel-seg" style="left: {vercelLeft}%; width: {vercelWidth}%"></span>
       </div>
       <div class="tl-years" aria-hidden="true">
