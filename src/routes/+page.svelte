@@ -102,7 +102,7 @@
   // Remove the spawnMatrixRain() call in spawnWave and this entire block to
   // disable the effect without touching anything else.
   function spawnMatrixRain() {
-    const DURATION  = 10000;
+    const DURATION  = 5000;
     const CHARS     = 'ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ0123456789';
     const FONT_SIZE = 14;
 
@@ -116,6 +116,7 @@
     const cols    = Math.floor(W / FONT_SIZE);
     const drops   = Array.from({ length: cols }, () => Math.random() * -H / FONT_SIZE | 0);
     const start   = performance.now();
+    let frame     = 0;
 
     function tick(now) {
       const elapsed  = now - start;
@@ -130,6 +131,10 @@
 
       ctx.font = `${FONT_SIZE}px monospace`;
 
+      // Advance drops every 3rd frame (~20fps movement at 60fps display)
+      const advance = (frame % 3 === 0);
+      frame++;
+
       for (let i = 0; i < drops.length; i++) {
         const char = CHARS[Math.random() * CHARS.length | 0];
         const x    = i * FONT_SIZE;
@@ -143,8 +148,10 @@
         ctx.fillStyle = `rgba(0,255,65,${0.55 * fadeOut})`;
         ctx.fillText(CHARS[Math.random() * CHARS.length | 0], x, y - FONT_SIZE);
 
-        if (y > H && Math.random() > 0.975) drops[i] = 0;
-        else drops[i]++;
+        if (advance) {
+          if (y > H && Math.random() > 0.975) drops[i] = 0;
+          else drops[i]++;
+        }
       }
 
       requestAnimationFrame(tick);
