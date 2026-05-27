@@ -113,10 +113,12 @@
     document.body.appendChild(canvas);
     const ctx = canvas.getContext('2d');
 
-    const cols    = Math.floor(W / FONT_SIZE);
-    const drops   = Array.from({ length: cols }, () => Math.random() * -H / FONT_SIZE | 0);
-    const start   = performance.now();
-    let frame     = 0;
+    const cols     = Math.floor(W / FONT_SIZE);
+    const drops    = Array.from({ length: cols }, () => Math.random() * -H / FONT_SIZE | 0);
+    const headChar = Array.from({ length: cols }, () => CHARS[Math.random() * CHARS.length | 0]);
+    const bodyChar = Array.from({ length: cols }, () => CHARS[Math.random() * CHARS.length | 0]);
+    const start    = performance.now();
+    let frame      = 0;
 
     function tick(now) {
       const elapsed  = now - start;
@@ -131,22 +133,26 @@
 
       ctx.font = `${FONT_SIZE}px monospace`;
 
-      // Advance drops every 3rd frame (~20fps movement at 60fps display)
-      const advance = (frame % 3 === 0);
+      // Advance drops every 6th frame (~10fps movement at 60fps display)
+      const advance = (frame % 6 === 0);
       frame++;
 
       for (let i = 0; i < drops.length; i++) {
-        const char = CHARS[Math.random() * CHARS.length | 0];
-        const x    = i * FONT_SIZE;
-        const y    = drops[i] * FONT_SIZE;
+        const x = i * FONT_SIZE;
+        const y = drops[i] * FONT_SIZE;
+
+        if (advance) {
+          headChar[i] = CHARS[Math.random() * CHARS.length | 0];
+          bodyChar[i] = CHARS[Math.random() * CHARS.length | 0];
+        }
 
         // Bright head character
         ctx.fillStyle = `rgba(180,255,180,${0.95 * fadeOut})`;
-        ctx.fillText(char, x, y);
+        ctx.fillText(headChar[i], x, y);
 
         // Column body — dimmer green
         ctx.fillStyle = `rgba(0,255,65,${0.55 * fadeOut})`;
-        ctx.fillText(CHARS[Math.random() * CHARS.length | 0], x, y - FONT_SIZE);
+        ctx.fillText(bodyChar[i], x, y - FONT_SIZE);
 
         if (advance) {
           if (y > H && Math.random() > 0.975) drops[i] = 0;
