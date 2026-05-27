@@ -102,7 +102,7 @@
   // Remove the spawnMatrixRain() call in spawnWave and this entire block to
   // disable the effect without touching anything else.
   function spawnMatrixRain() {
-    const DURATION  = 5000;
+    const DURATION  = 8000;
     const CHARS     = 'ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ0123456789';
     const FONT_SIZE = 14;
 
@@ -125,7 +125,7 @@
       if (elapsed >= DURATION) { canvas.remove(); return; }
 
       const progress  = elapsed / DURATION;
-      const fadeOut   = progress > 0.75 ? 1 - (progress - 0.75) / 0.25 : 1;
+      const fadeOut   = elapsed > 5000 ? 1 - (elapsed - 5000) / 3000 : 1;
 
       // Semi-transparent fill for the fading trail
       ctx.fillStyle = `rgba(0,0,0,${0.05 * fadeOut + (1 - fadeOut) * 0.2})`;
