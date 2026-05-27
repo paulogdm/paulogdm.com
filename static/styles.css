@@ -347,6 +347,7 @@ a:hover {
   /* translateZ(0) forces a compositor layer so Safari doesn't clip the
      blur to the element's own bounding box. */
   transform: translateZ(0);
+  z-index: -1;
   transition: opacity 0.5s ease, left 0.5s ease, right 0.5s ease;
 }
 
@@ -355,12 +356,22 @@ a:hover {
   left: 30%; right: 30%;
 }
 
+/* Shadow reacts when the photo is grabbed — shrinks like it's lifting */
+.me-size--dragging::after {
+  opacity: 0.12 !important;
+  left: 38% !important;
+  right: 38% !important;
+  transition: opacity 0s, left 0s, right 0s;
+}
+
 .me-photo {
   border-radius: 50%;
   height: clamp(130px, 22vw, 200px);
   width: auto;
   user-select: none;
-  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  touch-action: none;
+  /* Spring-back when released */
+  transition: transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .me-photo:hover {
@@ -374,8 +385,9 @@ a:hover {
     animation: none;
   }
 
-  .me-photo:hover {
-    transform: none;
+  .me-photo:hover,
+  .me-photo[style] {
+    transform: none !important;
   }
 
   .tl-spark::before,
