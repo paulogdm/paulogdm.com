@@ -41,9 +41,26 @@
     }
 
     let keyBuf = '';
+    const KONAMI_SEQ = ['arrowup','arrowup','arrowdown','arrowdown','arrowleft','arrowright','arrowleft','arrowright','b','a'];
+    let konamiIdx = 0;
+
     function onKey(e) {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      keyBuf = (keyBuf + e.key.toLowerCase()).slice(-6);
+
+      // Konami code — tracked separately since arrow keys aren't single chars
+      const k = e.key.toLowerCase();
+      if (k === KONAMI_SEQ[konamiIdx]) {
+        konamiIdx++;
+        if (konamiIdx === KONAMI_SEQ.length) {
+          konamiIdx = 0;
+          spawnKonamiWave();
+          return;
+        }
+      } else {
+        konamiIdx = k === KONAMI_SEQ[0] ? 1 : 0;
+      }
+
+      keyBuf = (keyBuf + k).slice(-6);
       if (keyBuf.endsWith('sonar'))  { keyBuf = ''; triggerAllWaves(); return; }
       if (keyBuf.endsWith('matrix')) {
         keyBuf = '';
@@ -126,16 +143,13 @@
 
       const fadeOut = elapsed > 5000 ? 1 - (elapsed - 5000) / 3000 : 1;
 
-      // Fade the whole canvas element so the page shows through
       canvas.style.opacity = fadeOut;
 
-      // Semi-transparent fill for the trailing glow effect
       ctx.fillStyle = 'rgba(0,0,0,0.05)';
       ctx.fillRect(0, 0, W, H);
 
       ctx.font = `${FONT_SIZE}px monospace`;
 
-      // Advance drops every 6th frame (~10fps movement at 60fps display)
       const advance = (frame % 6 === 0);
       frame++;
 
@@ -148,11 +162,9 @@
           bodyChar[i] = CHARS[Math.random() * CHARS.length | 0];
         }
 
-        // Bright head character
         ctx.fillStyle = `rgba(180,255,180,${0.95 * fadeOut})`;
         ctx.fillText(headChar[i], x, y);
 
-        // Column body — dimmer green
         ctx.fillStyle = `rgba(0,255,65,${0.55 * fadeOut})`;
         ctx.fillText(bodyChar[i], x, y - FONT_SIZE);
 
@@ -167,6 +179,83 @@
     requestAnimationFrame(tick);
   }
   // ── END MATRIX RAIN ──────────────────────────────────────────────────────────
+
+  // ── KONAMI WAVE ──────────────────────────────────────────────────────────────
+  function spawnKonamiWave() {
+    const DURATION   = 5000;
+    const BLOCK      = 8;
+    const NES_COLORS = ['#FF0000','#FF7700','#FFFF00','#00CC00','#00CCFF','#0000FF','#CC00FF','#FF00CC','#FFFFFF'];
+
+    const canvas = document.createElement('canvas');
+    canvas.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:9999;';
+    const W = canvas.width  = window.innerWidth;
+    const H = canvas.height = window.innerHeight;
+    document.body.appendChild(canvas);
+    const ctx = canvas.getContext('2d');
+
+    const spark = document.querySelector('.tl-spark');
+    const sr    = spark.getBoundingClientRect();
+    const cx    = sr.left + sr.width  / 2;
+    const cy    = sr.top  + sr.height / 2;
+
+    const start = performance.now();
+    let colorIdx = 0;
+    let frame    = 0;
+
+    function tick(now) {
+      const elapsed = now - start;
+      if (elapsed >= DURATION) { canvas.remove(); return; }
+
+      const alpha = Math.max(0, 1 - elapsed / DURATION);
+      ctx.clearRect(0, 0, W, H);
+
+      ctx.fillStyle = 'rgba(0,0,0,0.18)';
+      for (let y = 0; y < H; y += 4) ctx.fillRect(0, y, W, 2);
+
+      if (frame % 2 === 0) colorIdx = (colorIdx + 1) % NES_COLORS.length;
+      frame++;
+
+      const r     = elapsed / 1000 * 220;
+      const color = NES_COLORS[colorIdx];
+
+      const steps = Math.max(48, Math.ceil(2 * Math.PI * r / BLOCK) * 2);
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle   = color;
+      const drawn = new Set();
+      for (let i = 0; i < steps; i++) {
+        const angle = (i / steps) * Math.PI * 2;
+        for (let w = 0; w < 3; w++) {
+          const pr = r - w * BLOCK;
+          if (pr < 1) continue;
+          const bx = Math.round((cx + Math.cos(angle) * pr) / BLOCK) * BLOCK;
+          const by = Math.round((cy + Math.sin(angle) * pr) / BLOCK) * BLOCK;
+          const key = `${bx},${by}`;
+          if (drawn.has(key)) continue;
+          drawn.add(key);
+          ctx.fillRect(bx, by, BLOCK, BLOCK);
+        }
+      }
+
+      if (elapsed < 2200) {
+        const floatY   = cy - 20 - (elapsed / 2200) * 70;
+        const textFade = elapsed < 1600 ? 1 : 1 - (elapsed - 1600) / 600;
+        ctx.globalAlpha  = textFade;
+        ctx.fillStyle    = '#FFFF00';
+        ctx.font         = 'bold 22px monospace';
+        ctx.textAlign    = 'center';
+        ctx.shadowBlur   = 10;
+        ctx.shadowColor  = '#FF8800';
+        ctx.fillText('1UP', cx, floatY);
+        ctx.shadowBlur   = 0;
+        ctx.textAlign    = 'left';
+      }
+
+      ctx.globalAlpha = 1;
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+  // ── END KONAMI WAVE ───────────────────────────────────────────────────────────
 
   function spawnWave(cx, cy, forcedVariant, bypassLimit = false) {
     if (!bypassLimit && activeSonars >= MAX_SONARS) return;
