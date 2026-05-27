@@ -338,25 +338,31 @@
       { sx: 2*W-cx,   sy: 2*H-cy,   a: 0.40, bornAt: s(Math.hypot(W-cx, H-cy))    },
     ];
 
-    // Pre-compute per-source rainbow gradients once — reusing them saves
-    // 9 gradient allocations per frame (~540/s at 60fps) for this variant.
-    const rainbowGrads = variant === 'rainbow'
-      ? sources.map(({ sx, sy }) => {
-          const g = ctx.createConicGradient(0, sx, sy);
-          for (let i = 0; i <= 12; i++) g.addColorStop(i / 12, `hsl(${(i / 12) * 360},100%,58%)`);
-          return g;
-        })
-      : null;
+    // Rainbow gradients are rebuilt each frame with a rotating startAngle so
+    // colours appear to flow anti-clockwise. One full revolution per 4 s.
+    // The per-frame cost (9 allocations) is acceptable for this rare variant.
+    const rainbowGrads = variant === 'rainbow' ? [] : null;
 
     const start = performance.now();
 
     function tick(now) {
       const elapsed = now - start;
+
       if (elapsed >= DURATION) {
         canvas.remove();
         activeSonars--;
         if (highlightEl) highlightEl.classList.remove('tl-company--lit');
         return;
+      }
+
+      if (rainbowGrads) {
+        const angle = elapsed * Math.PI / 2000; // 2π per 4000 ms, CW rotation → CCW colour flow
+        for (let i = 0; i < sources.length; i++) {
+          const { sx, sy } = sources[i];
+          const g = ctx.createConicGradient(angle, sx, sy);
+          for (let j = 0; j <= 12; j++) g.addColorStop(j / 12, `hsl(${(j / 12) * 360},100%,58%)`);
+          rainbowGrads[i] = g;
+        }
       }
 
       const r = elapsed / 1000 * SPEED;
