@@ -69,14 +69,13 @@
     if (r < 3.0)  return 'glitch';
     if (r < 3.5)  return 'ripple';
     if (r < 4.0)  return 'gold';
-    if (r < 4.5)  return 'slow-burn';
-    if (r < 5.0)  return 'ghost';
-    if (r < 5.5)  return 'vercel';
-    if (r < 6.0)  return 'clerk';
+    if (r < 4.5)  return 'ghost';
+    if (r < 5.0)  return 'vercel';
+    if (r < 5.5)  return 'clerk';
     return 'default';
   }
 
-  const ALL_VARIANTS = ['default', 'rainbow', 'mono', 'matrix', 'void', 'glitch', 'ripple', 'gold', 'slow-burn', 'ghost', 'vercel', 'clerk'];
+  const ALL_VARIANTS = ['default', 'rainbow', 'mono', 'matrix', 'void', 'glitch', 'ripple', 'gold', 'ghost', 'vercel', 'clerk'];
 
   function triggerAllWaves() {
     const spark = document.querySelector('.tl-spark');
@@ -103,10 +102,9 @@
     const ctx = canvas.getContext('2d');
 
     const variant  = forcedVariant ?? pickVariant();
-    const DURATION = variant === 'slow-burn' ? 12000 : 5000;
-    const SPEED    = variant === 'matrix'    ? 440
-                   : variant === 'slow-burn' ? 55
-                   : variant === 'vercel'    ? 260
+    const DURATION = 5000;
+    const SPEED    = variant === 'matrix' ? 440
+                   : variant === 'vercel' ? 260
                    : 220;
     const isDark   = document.documentElement.classList.contains('theme-dark');
 
@@ -257,17 +255,17 @@
             ctx.shadowBlur  = 14;
             ctx.shadowColor = `rgba(255,210,0,${(alpha * 0.7).toFixed(3)})`;
           } else if (variant === 'ghost') {
-            color          = `rgba(255,255,255,${(alpha * 0.07).toFixed(3)})`;
-            lineWidth      = 1;
-            ctx.shadowBlur  = 0;
-            ctx.shadowColor = 'transparent';
+            color          = `rgba(180,120,255,${(alpha * 0.45).toFixed(3)})`;
+            lineWidth      = 2;
+            ctx.shadowBlur  = 22;
+            ctx.shadowColor = `rgba(160,80,255,${(alpha * 0.6).toFixed(3)})`;
           } else if (variant === 'clerk') {
             color          = `rgba(108,71,255,${alpha.toFixed(3)})`;
             lineWidth      = 2;
             ctx.shadowBlur  = 14;
             ctx.shadowColor = `rgba(108,71,255,${(alpha * 0.7).toFixed(3)})`;
           } else {
-            // default + slow-burn share the same orange look
+            // default
             color     = `rgba(255,102,0,${alpha.toFixed(3)})`;
             lineWidth = 1;
             ctx.shadowBlur  = 0;
