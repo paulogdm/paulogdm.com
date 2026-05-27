@@ -58,7 +58,7 @@
   });
 
   let activeSonars = 0;
-  const MAX_SONARS = 20;
+  const MAX_SONARS = 3;
 
   function pickVariant() {
     const r = Math.random() * 100;
