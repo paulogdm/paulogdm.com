@@ -63,7 +63,6 @@ a {
 }
 
 a:hover {
-  text-decoration: none;
   color: var(--accent);
 }
 
@@ -356,11 +355,14 @@ a:hover {
   left: 30%; right: 30%;
 }
 
-/* Shadow reacts when the photo is grabbed — shrinks like it's lifting */
-.me-size--dragging::after {
-  opacity: 0.12 !important;
-  left: 38% !important;
-  right: 38% !important;
+/* Shadow reacts when the photo is grabbed — shrinks like it's lifting.
+   The :hover variant is listed so it beats .me-size:hover::after (0,2,1)
+   without needing !important. */
+.me-size--dragging::after,
+.me-size--dragging:hover::after {
+  opacity: 0.12;
+  left: 38%;
+  right: 38%;
   transition: opacity 0s, left 0s, right 0s;
 }
 

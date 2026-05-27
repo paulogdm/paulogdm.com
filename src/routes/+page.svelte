@@ -10,7 +10,8 @@
   import xIcon             from '@iconify-icons/simple-icons/x';
   import stackoverflowIcon from '@iconify-icons/simple-icons/stackoverflow';
 
-  let lights = $state(false);
+  let lights  = $state(false);
+  let sparkEl = null; // cached after mount — avoids repeated querySelector calls
 
   // ── Photo drag resistance ────────────────────────────────────────────────────
   let isDragging  = $state(false);
@@ -75,6 +76,8 @@
   }
 
   onMount(() => {
+    sparkEl = document.querySelector('.tl-spark');
+
     const saved = getCookie('lights');
     if (saved === 'on' || saved === 'off') {
       lights = saved === 'on';
@@ -107,16 +110,14 @@
       if (keyBuf.endsWith('sonar'))  { keyBuf = ''; triggerAllWaves(); return; }
       if (keyBuf.endsWith('matrix')) {
         keyBuf = '';
-        const spark = document.querySelector('.tl-spark');
-        const rect  = spark.getBoundingClientRect();
+        const rect = sparkEl.getBoundingClientRect();
         spawnWave(rect.left + rect.width / 2, rect.top + rect.height / 2, 'matrix');
         return;
       }
       if (keyBuf.endsWith('vercel') || keyBuf.endsWith('clerk')) {
         const variant = keyBuf.endsWith('vercel') ? 'vercel' : 'clerk';
         keyBuf = '';
-        const spark = document.querySelector('.tl-spark');
-        const rect  = spark.getBoundingClientRect();
+        const rect = sparkEl.getBoundingClientRect();
         spawnWave(rect.left + rect.width / 2, rect.top + rect.height / 2, variant);
       }
     }
@@ -145,8 +146,7 @@
   const ALL_VARIANTS = ['default', 'rainbow', 'mono', 'matrix', 'void', 'glitch', 'ripple', 'gold', 'ghost', 'vercel', 'clerk'];
 
   function triggerAllWaves() {
-    const spark = document.querySelector('.tl-spark');
-    const rect  = spark.getBoundingClientRect();
+    const rect = sparkEl.getBoundingClientRect();
     const cx    = rect.left + rect.width / 2;
     const cy    = rect.top  + rect.height / 2;
     ALL_VARIANTS.forEach((v, i) => setTimeout(() => spawnWave(cx, cy, v, true), i * 1000));
@@ -236,9 +236,8 @@
     document.body.appendChild(canvas);
     const ctx = canvas.getContext('2d');
 
-    const spark = document.querySelector('.tl-spark');
-    const sr    = spark.getBoundingClientRect();
-    const cx    = sr.left + sr.width  / 2;
+    const sr = sparkEl.getBoundingClientRect();
+    const cx = sr.left + sr.width  / 2;
     const cy    = sr.top  + sr.height / 2;
 
     const start = performance.now();
@@ -339,15 +338,31 @@
       { sx: 2*W-cx,   sy: 2*H-cy,   a: 0.40, bornAt: s(Math.hypot(W-cx, H-cy))    },
     ];
 
+    // Rainbow gradients are rebuilt each frame with a rotating startAngle so
+    // colours appear to flow anti-clockwise. One full revolution per 4 s.
+    // The per-frame cost (9 allocations) is acceptable for this rare variant.
+    const rainbowGrads = variant === 'rainbow' ? [] : null;
+
     const start = performance.now();
 
     function tick(now) {
       const elapsed = now - start;
+
       if (elapsed >= DURATION) {
         canvas.remove();
         activeSonars--;
         if (highlightEl) highlightEl.classList.remove('tl-company--lit');
         return;
+      }
+
+      if (rainbowGrads) {
+        const angle = elapsed * Math.PI / 2000; // 2π per 4000 ms, CW rotation → CCW colour flow
+        for (let i = 0; i < sources.length; i++) {
+          const { sx, sy } = sources[i];
+          const g = ctx.createConicGradient(angle, sx, sy);
+          for (let j = 0; j <= 12; j++) g.addColorStop(j / 12, `hsl(${(j / 12) * 360},100%,58%)`);
+          rainbowGrads[i] = g;
+        }
       }
 
       const r = elapsed / 1000 * SPEED;
@@ -375,16 +390,15 @@
         }
         ctx.globalCompositeOperation = 'source-over';
       } else {
-        for (const { sx, sy, a, bornAt } of sources) {
+        for (let si = 0; si < sources.length; si++) {
+          const { sx, sy, a, bornAt } = sources[si];
           if (elapsed < bornAt) continue;
           const remaining = DURATION - bornAt;
           const alpha = a * Math.max(0, 1 - (elapsed - bornAt) / remaining);
           if (alpha < 0.01) continue;
 
           if (variant === 'rainbow') {
-            const grad = ctx.createConicGradient(0, sx, sy);
-            for (let i = 0; i <= 12; i++) grad.addColorStop(i / 12, `hsl(${(i / 12) * 360},100%,58%)`);
-            ctx.fillStyle = grad;
+            ctx.fillStyle = rainbowGrads[si];
 
             // Glow pass — wider ring, faint
             ctx.globalAlpha = alpha * 0.28;
