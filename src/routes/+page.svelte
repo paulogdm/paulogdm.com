@@ -12,6 +12,49 @@
 
   let lights = $state(false);
 
+  // ── Photo drag resistance ────────────────────────────────────────────────────
+  let isDragging  = $state(false);
+  let photoX      = $state(0);
+  let photoY      = $state(0);
+  let dragOriginX = 0;
+  let dragOriginY = 0;
+
+  // tanh gives natural rubber-band feel: small pulls move freely, hard pulls
+  // hit a soft wall. Max visible displacement is ±MAX_PX regardless of drag.
+  const MAX_PX = 24;
+  const TENSION = 85; // lower = stiffer
+
+  function resist(v) {
+    return Math.tanh(v / TENSION) * MAX_PX;
+  }
+
+  function onPhotoDragStart(e) {
+    isDragging  = true;
+    dragOriginX = e.clientX;
+    dragOriginY = e.clientY;
+    e.currentTarget.setPointerCapture(e.pointerId);
+  }
+
+  function onPhotoMove(e) {
+    if (!isDragging) return;
+    photoX = resist(e.clientX - dragOriginX);
+    photoY = resist(e.clientY - dragOriginY);
+  }
+
+  function onPhotoRelease() {
+    isDragging = false;
+    photoX = 0;
+    photoY = 0;
+  }
+
+  // Derived style — applied inline so transition can be toggled per-state
+  let photoStyle = $derived(
+    isDragging
+      ? `transform: translate(${photoX}px, ${photoY}px) perspective(500px) rotateX(${(-photoY * 0.55).toFixed(2)}deg) rotateY(${(photoX * 0.55).toFixed(2)}deg) scale(1.04); transition: transform 0s; cursor: grabbing;`
+      : 'cursor: grab;'
+  );
+  // ── End photo drag resistance ─────────────────────────────────────────────
+
   $effect(() => {
     document.documentElement.classList.toggle('theme-dark', lights);
     document.documentElement.classList.toggle('theme-light', !lights);
@@ -533,12 +576,17 @@
   </div>
 
   <div class="my-4 text-center">
-    <div class="me-size animated fadeIn" style="animation-delay: 0.1s">
+    <div class="me-size animated fadeIn" class:me-size--dragging={isDragging} style="animation-delay: 0.1s">
       <img
         src="/assets/me.jpg"
         class="mx-auto d-block me-photo"
         alt="paulogdm"
         draggable="false"
+        style={photoStyle}
+        onpointerdown={onPhotoDragStart}
+        onpointermove={onPhotoMove}
+        onpointerup={onPhotoRelease}
+        onpointercancel={onPhotoRelease}
       >
     </div>
 
