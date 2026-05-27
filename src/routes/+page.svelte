@@ -83,7 +83,7 @@
     const rect  = spark.getBoundingClientRect();
     const cx    = rect.left + rect.width / 2;
     const cy    = rect.top  + rect.height / 2;
-    ALL_VARIANTS.forEach((v, i) => setTimeout(() => spawnWave(cx, cy, v), i * 1000));
+    ALL_VARIANTS.forEach((v, i) => setTimeout(() => spawnWave(cx, cy, v, true), i * 1000));
   }
 
   function launchSonar(event) {
@@ -91,8 +91,8 @@
     spawnWave(rect.left + rect.width / 2, rect.top + rect.height / 2, null);
   }
 
-  function spawnWave(cx, cy, forcedVariant) {
-    if (activeSonars >= MAX_SONARS) return;
+  function spawnWave(cx, cy, forcedVariant, bypassLimit = false) {
+    if (!bypassLimit && activeSonars >= MAX_SONARS) return;
     activeSonars++;
 
     const canvas = document.createElement('canvas');
