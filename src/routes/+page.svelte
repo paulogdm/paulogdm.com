@@ -45,6 +45,13 @@
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       keyBuf = (keyBuf + e.key.toLowerCase()).slice(-6);
       if (keyBuf.endsWith('sonar'))  { keyBuf = ''; triggerAllWaves(); return; }
+      if (keyBuf.endsWith('matrix')) {
+        keyBuf = '';
+        const spark = document.querySelector('.tl-spark');
+        const rect  = spark.getBoundingClientRect();
+        spawnWave(rect.left + rect.width / 2, rect.top + rect.height / 2, 'matrix');
+        return;
+      }
       if (keyBuf.endsWith('vercel') || keyBuf.endsWith('clerk')) {
         const variant = keyBuf.endsWith('vercel') ? 'vercel' : 'clerk';
         keyBuf = '';
@@ -90,6 +97,62 @@
     spawnWave(rect.left + rect.width / 2, rect.top + rect.height / 2, null);
   }
 
+  // ── MATRIX RAIN ─────────────────────────────────────────────────────────────
+  // Full-page falling-character overlay triggered alongside the matrix wave.
+  // Remove the spawnMatrixRain() call in spawnWave and this entire block to
+  // disable the effect without touching anything else.
+  function spawnMatrixRain() {
+    const DURATION  = 10000;
+    const CHARS     = 'ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ0123456789';
+    const FONT_SIZE = 14;
+
+    const canvas  = document.createElement('canvas');
+    canvas.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:9998;';
+    const W = canvas.width  = window.innerWidth;
+    const H = canvas.height = window.innerHeight;
+    document.body.appendChild(canvas);
+    const ctx = canvas.getContext('2d');
+
+    const cols    = Math.floor(W / FONT_SIZE);
+    const drops   = Array.from({ length: cols }, () => Math.random() * -H / FONT_SIZE | 0);
+    const start   = performance.now();
+
+    function tick(now) {
+      const elapsed  = now - start;
+      if (elapsed >= DURATION) { canvas.remove(); return; }
+
+      const progress  = elapsed / DURATION;
+      const fadeOut   = progress > 0.75 ? 1 - (progress - 0.75) / 0.25 : 1;
+
+      // Semi-transparent fill for the fading trail
+      ctx.fillStyle = `rgba(0,0,0,${0.05 * fadeOut + (1 - fadeOut) * 0.2})`;
+      ctx.fillRect(0, 0, W, H);
+
+      ctx.font = `${FONT_SIZE}px monospace`;
+
+      for (let i = 0; i < drops.length; i++) {
+        const char = CHARS[Math.random() * CHARS.length | 0];
+        const x    = i * FONT_SIZE;
+        const y    = drops[i] * FONT_SIZE;
+
+        // Bright head character
+        ctx.fillStyle = `rgba(180,255,180,${0.95 * fadeOut})`;
+        ctx.fillText(char, x, y);
+
+        // Column body — dimmer green
+        ctx.fillStyle = `rgba(0,255,65,${0.55 * fadeOut})`;
+        ctx.fillText(CHARS[Math.random() * CHARS.length | 0], x, y - FONT_SIZE);
+
+        if (y > H && Math.random() > 0.975) drops[i] = 0;
+        else drops[i]++;
+      }
+
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+  // ── END MATRIX RAIN ──────────────────────────────────────────────────────────
+
   function spawnWave(cx, cy, forcedVariant, bypassLimit = false) {
     if (!bypassLimit && activeSonars >= MAX_SONARS) return;
     activeSonars++;
@@ -102,6 +165,7 @@
     const ctx = canvas.getContext('2d');
 
     const variant  = forcedVariant ?? pickVariant();
+    if (variant === 'matrix') spawnMatrixRain();
     const DURATION = 5000;
     const SPEED    = variant === 'matrix' ? 440
                    : variant === 'vercel' ? 260
