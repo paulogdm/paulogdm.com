@@ -182,7 +182,7 @@
 
   // ── KONAMI WAVE ──────────────────────────────────────────────────────────────
   function spawnKonamiWave() {
-    const DURATION   = 5000;
+    const DURATION   = 7000;
     const BLOCK      = 8;
     const NES_COLORS = ['#FF0000','#FF7700','#FFFF00','#00CC00','#00CCFF','#0000FF','#CC00FF','#FF00CC','#FFFFFF'];
 
@@ -206,7 +206,9 @@
       const elapsed = now - start;
       if (elapsed >= DURATION) { canvas.remove(); return; }
 
-      const alpha = Math.max(0, 1 - elapsed / DURATION);
+      // Fade the whole canvas element after 4.5s, same pattern as matrix rain
+      canvas.style.opacity = elapsed > 4500 ? 1 - (elapsed - 4500) / 2500 : 1;
+
       ctx.clearRect(0, 0, W, H);
 
       ctx.fillStyle = 'rgba(0,0,0,0.18)';
@@ -219,7 +221,7 @@
       const color = NES_COLORS[colorIdx];
 
       const steps = Math.max(48, Math.ceil(2 * Math.PI * r / BLOCK) * 2);
-      ctx.globalAlpha = alpha;
+      ctx.globalAlpha = 1;
       ctx.fillStyle   = color;
       const drawn = new Set();
       for (let i = 0; i < steps; i++) {
