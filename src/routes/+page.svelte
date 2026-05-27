@@ -124,11 +124,13 @@
       const elapsed  = now - start;
       if (elapsed >= DURATION) { canvas.remove(); return; }
 
-      const progress  = elapsed / DURATION;
-      const fadeOut   = elapsed > 5000 ? 1 - (elapsed - 5000) / 3000 : 1;
+      const fadeOut = elapsed > 5000 ? 1 - (elapsed - 5000) / 3000 : 1;
 
-      // Semi-transparent fill for the fading trail
-      ctx.fillStyle = `rgba(0,0,0,${0.05 * fadeOut + (1 - fadeOut) * 0.2})`;
+      // Fade the whole canvas element so the page shows through
+      canvas.style.opacity = fadeOut;
+
+      // Semi-transparent fill for the trailing glow effect
+      ctx.fillStyle = 'rgba(0,0,0,0.05)';
       ctx.fillRect(0, 0, W, H);
 
       ctx.font = `${FONT_SIZE}px monospace`;
