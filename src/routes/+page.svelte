@@ -256,7 +256,7 @@
       ctx.fillStyle = 'rgba(0,0,0,0.18)';
       for (let y = 0; y < H; y += 4) ctx.fillRect(0, y, W, 2);
 
-      if (frame % 2 === 0) colorIdx = (colorIdx + 1) % NES_COLORS.length;
+      if (frame % 10 === 0) colorIdx = (colorIdx + 1) % NES_COLORS.length;
       frame++;
 
       const r     = elapsed / 1000 * 220;
