@@ -10,7 +10,8 @@
   import xIcon             from '@iconify-icons/simple-icons/x';
   import stackoverflowIcon from '@iconify-icons/simple-icons/stackoverflow';
 
-  let lights  = $state(false);
+  let lights       = $state(false);
+  let coinRotation = $state(0);   // accumulates 180° per click — drives the coin flip
   let sparkEl = null; // cached after mount — avoids repeated querySelector calls
 
   // ── Photo drag resistance ────────────────────────────────────────────────────
@@ -72,6 +73,7 @@
 
   function changeBackground() {
     lights = !lights;
+    coinRotation += 180;
     setCookie('lights', lights ? 'on' : 'off');
   }
 
@@ -85,6 +87,7 @@
       lights = window.matchMedia('(prefers-color-scheme: dark)').matches;
       setCookie('lights', lights ? 'on' : 'off');
     }
+    coinRotation = lights ? 180 : 0;  // sync coin face with restored theme
 
     let keyBuf = '';
     const KONAMI_SEQ = ['arrowup','arrowup','arrowdown','arrowdown','arrowleft','arrowright','arrowleft','arrowright','b','a'];
@@ -578,21 +581,21 @@
   <div class="px-4 py-4">
     <button
       onclick={changeBackground}
-      class="theme-toggle animated fadeIn"
-      class:is-dark={lights}
+      class="coin-btn animated fadeIn"
       role="switch"
       aria-checked={lights}
       aria-label={lights ? 'Switch to light mode' : 'Switch to dark mode'}
     >
-      <span class="tt-track">
-        <span class="tt-icon tt-icon--sun" aria-hidden="true">
-          <Icon icon={sunIcon} width="0.7rem" />
-        </span>
-        <span class="tt-icon tt-icon--moon" aria-hidden="true">
-          <Icon icon={moonIcon} width="0.7rem" />
-        </span>
-        <span class="tt-thumb"></span>
-      </span>
+      <div class="coin-wrap">
+        <div class="coin" style="transform: perspective(160px) rotateY({coinRotation}deg)">
+          <div class="coin-face coin-front" aria-hidden="true">
+            <Icon icon={sunIcon} width="1.1rem" />
+          </div>
+          <div class="coin-face coin-back" aria-hidden="true">
+            <Icon icon={moonIcon} width="1.1rem" />
+          </div>
+        </div>
+      </div>
     </button>
   </div>
 
