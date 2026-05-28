@@ -578,14 +578,21 @@
   <div class="px-4 py-4">
     <button
       onclick={changeBackground}
-      class="lightbulb animated fadeIn p-2 {lights ? 'mode-dark' : 'mode-light'}"
-      aria-label="Toggle light/dark mode"
+      class="theme-toggle animated fadeIn"
+      class:is-dark={lights}
+      role="switch"
+      aria-checked={lights}
+      aria-label={lights ? 'Switch to light mode' : 'Switch to dark mode'}
     >
-      {#key lights}
-        <span class="icon-swap">
-          <Icon icon={lights ? sunIcon : moonIcon} width="2em" />
+      <span class="tt-track">
+        <span class="tt-icon tt-icon--sun" aria-hidden="true">
+          <Icon icon={sunIcon} width="0.7rem" />
         </span>
-      {/key}
+        <span class="tt-icon tt-icon--moon" aria-hidden="true">
+          <Icon icon={moonIcon} width="0.7rem" />
+        </span>
+        <span class="tt-thumb"></span>
+      </span>
     </button>
   </div>
 
