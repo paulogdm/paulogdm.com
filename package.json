@@ -14,7 +14,6 @@
     "vite": "^8.0.0"
   },
   "dependencies": {
-    "@fontsource-variable/inter": "^5.2.8",
     "@iconify-icons/lucide": "^1.2.135",
     "@iconify-icons/simple-icons": "^1.2.74",
     "@iconify/svelte": "^5.2.1"
