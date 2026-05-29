@@ -700,7 +700,7 @@
   <meta property="og:image" content="https://paulogdm.com/assets/ogimage.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
-  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:site" content="@paulogdm" />
 </svelte:head>
 
