@@ -139,11 +139,13 @@
   // cost, which fights the perf goals above. 2× is the sharpness/perf sweet spot.
   const DPR_CAP = 2;
 
-  let fxCanvas = null;
-  let fxCtx    = null;
-  let fxRaf    = 0;
-  let fxW      = 0;
-  let fxH      = 0;
+  let fxCanvas        = null;
+  let fxCtx           = null;
+  let fxRaf           = 0;
+  let fxResizePending = false;
+  let fxPausedAt      = 0; // performance.now() when the tab was hidden; 0 = running
+  let fxW             = 0;
+  let fxH             = 0;
   const effects = []; // active effects: { startedAt, duration, render, onEnd?, onResize? }
 
   function fxResize() {
@@ -159,6 +161,36 @@
     for (const fx of effects) fx.onResize?.(fxW, fxH); // 13: let effects rebuild geometry
   }
 
+  // 17: a resize burst (dragging a window edge) fires dozens of events; each
+  // fxResize rebuilds the matrix/konami offscreen buffers and typed arrays.
+  // Just flag it — fxTick applies the resize at the top of the next frame, so
+  // the canvas-clearing resize and the redraw happen in the same frame and in
+  // that order. Doing the resize in a *separate* rAF could land after the
+  // frame's draw, leaving a blank canvas for one frame (visible flash).
+  function scheduleResize() {
+    fxResizePending = true;
+    // Ensure a frame runs to apply it — but not while paused (hidden tab),
+    // where onVisibility owns restarting the loop.
+    if (!fxRaf && !fxPausedAt) fxRaf = requestAnimationFrame(fxTick);
+  }
+
+  // 9: effects measure progress as (now - startedAt) on the wall clock. While a
+  // tab is hidden, rAF stops firing but the clock keeps running — so on return
+  // an effect would jump ahead (or have silently expired). Pause by cancelling
+  // the loop on hide, and on show shift every startedAt forward by the hidden
+  // duration so accumulated elapsed is preserved and playback resumes in place.
+  function onVisibility() {
+    if (document.hidden) {
+      if (fxRaf) { cancelAnimationFrame(fxRaf); fxRaf = 0; }
+      fxPausedAt = performance.now();
+    } else if (fxPausedAt) {
+      const hiddenFor = performance.now() - fxPausedAt;
+      fxPausedAt = 0;
+      for (const fx of effects) fx.startedAt += hiddenFor;
+      if (effects.length && !fxRaf) fxRaf = requestAnimationFrame(fxTick);
+    }
+  }
+
   function ensureCanvas() {
     if (fxCanvas) return;
     fxCanvas = document.createElement('canvas');
@@ -166,15 +198,19 @@
     fxCtx = fxCanvas.getContext('2d');
     document.body.appendChild(fxCanvas);
     fxResize();
-    window.addEventListener('resize', fxResize);
+    window.addEventListener('resize', scheduleResize);
+    document.addEventListener('visibilitychange', onVisibility);
   }
 
   function stopRenderer() {
     if (fxRaf) cancelAnimationFrame(fxRaf);
     fxRaf = 0;
+    fxResizePending = false;
+    fxPausedAt = 0;
     effects.length = 0;
     if (fxCanvas) {
-      window.removeEventListener('resize', fxResize);
+      window.removeEventListener('resize', scheduleResize);
+      document.removeEventListener('visibilitychange', onVisibility);
       fxCanvas.remove();
       fxCanvas = null;
       fxCtx = null;
@@ -189,6 +225,14 @@
 
   function fxTick(now) {
     fxRaf = 0;
+
+    // Apply any pending resize first, in the same frame as the redraw below.
+    // (Resizing the backing store clears it, so the draw must follow it here.)
+    if (fxResizePending) {
+      fxResizePending = false;
+      fxResize();
+    }
+
     fxCtx.clearRect(0, 0, fxW, fxH); // single clear for the whole frame
 
     // Draw oldest → newest so freshly triggered effects layer on top.
@@ -295,7 +339,6 @@
     const SPEED   = variant === 'matrix' ? 440
                   : variant === 'vercel' ? 260
                   : 220;
-    const isDark  = document.documentElement.classList.contains('theme-dark');
 
     if (variant === 'matrix') addMatrixEffect();
 
@@ -320,12 +363,12 @@
         if (highlightEl) highlightEl.classList.remove('tl-company--lit');
       },
       render(ctx, elapsed) {
-        drawWave(ctx, elapsed, variant, SPEED, isDark, sources, rainbowGrads);
+        drawWave(ctx, elapsed, variant, SPEED, sources, rainbowGrads);
       },
     });
   }
 
-  function drawWave(ctx, elapsed, variant, SPEED, isDark, sources, rainbowGrads) {
+  function drawWave(ctx, elapsed, variant, SPEED, sources, rainbowGrads) {
     const W = fxW, H = fxH;
     const r = elapsed / 1000 * SPEED;
 
@@ -414,15 +457,18 @@
         // Expanding equilateral triangle — matches Vercel's ▲ logo orientation.
         // r is the circumradius (center → vertex), same scale as the circle waves.
         const h = r * Math.sqrt(3) / 2;  // half-width at base
+        // White ▲ on dark, black ▲ on light. Read the theme live so a mid-wave
+        // toggle recolours correctly (same approach as the mono variant).
+        const rgb = document.documentElement.classList.contains('theme-dark') ? '255,255,255' : '0,0,0';
         ctx.beginPath();
         ctx.moveTo(sx,     sy - r);       // top vertex
         ctx.lineTo(sx + h, sy + r / 2);   // bottom-right
         ctx.lineTo(sx - h, sy + r / 2);   // bottom-left
         ctx.closePath();
-        ctx.strokeStyle = `rgba(255,255,255,${alpha.toFixed(3)})`;
+        ctx.strokeStyle = `rgba(${rgb},${alpha.toFixed(3)})`;
         ctx.lineWidth   = 2;
         ctx.shadowBlur  = 20;
-        ctx.shadowColor = `rgba(255,255,255,${(alpha * 0.6).toFixed(3)})`;
+        ctx.shadowColor = `rgba(${rgb},${(alpha * 0.6).toFixed(3)})`;
         ctx.stroke();
         ctx.shadowBlur  = 0;
         ctx.shadowColor = 'transparent';
@@ -453,7 +499,8 @@
 
       let color, lineWidth;
       if (variant === 'mono') {
-        const rgb = isDark ? '255,255,255' : '0,0,0';
+        // Read the theme live so a mid-wave toggle recolours correctly (#18).
+        const rgb = document.documentElement.classList.contains('theme-dark') ? '255,255,255' : '0,0,0';
         color     = `rgba(${rgb},${alpha.toFixed(3)})`;
         lineWidth = 1;
         ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
@@ -725,7 +772,11 @@
         src="/assets/me.jpg"
         class="mx-auto d-block me-photo"
         alt="paulogdm"
+        width="500"
+        height="500"
         draggable="false"
+        fetchpriority="low"
+        decoding="async"
         style={photoStyle}
         onpointerdown={onPhotoDragStart}
         onpointermove={onPhotoMove}
