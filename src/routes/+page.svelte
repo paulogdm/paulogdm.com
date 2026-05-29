@@ -13,6 +13,15 @@
   let lights  = $state(false);
   let sparkEl = null; // cached after mount — avoids repeated querySelector calls
 
+  // Accessibility: users who request reduced motion get no canvas easter eggs
+  // at all. Several variants (matrix, glitch) strobe rapidly, which is a
+  // genuine photosensitivity/vestibular risk. Checked live at trigger time so
+  // it tracks changes to the OS setting without a reload.
+  function prefersReducedMotion() {
+    return typeof window !== 'undefined'
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+
   // ── Photo drag resistance ────────────────────────────────────────────────────
   let isDragging  = $state(false);
   let photoX      = $state(0);
@@ -78,6 +87,7 @@
 
     function onKey(e) {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (prefersReducedMotion()) return; // no keyboard easter eggs under reduced motion
 
       // Konami code — tracked separately since arrow keys aren't single chars
       const k = e.key.toLowerCase();
@@ -139,6 +149,7 @@
   }
 
   function launchSonar(event) {
+    if (prefersReducedMotion()) return;
     const rect = event.currentTarget.getBoundingClientRect();
     spawnWave(rect.left + rect.width / 2, rect.top + rect.height / 2, null);
   }
@@ -211,6 +222,7 @@
 
   // ── KONAMI WAVE ──────────────────────────────────────────────────────────────
   function spawnKonamiWave() {
+    if (prefersReducedMotion()) return;
     const DURATION   = 7000;
     const BLOCK      = 8;
     const NES_COLORS = ['#FF0000','#FF7700','#FFFF00','#00CC00','#00CCFF','#0000FF','#CC00FF','#FF00CC','#FFFFFF'];
@@ -288,6 +300,7 @@
   // ── END KONAMI WAVE ───────────────────────────────────────────────────────────
 
   function spawnWave(cx, cy, forcedVariant, bypassLimit = false) {
+    if (prefersReducedMotion()) return; // defensive: also stops late triggerAllWaves timeouts
     if (!bypassLimit && activeSonars >= MAX_SONARS) return;
     activeSonars++;
 
