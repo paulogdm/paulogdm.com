@@ -457,15 +457,18 @@
         // Expanding equilateral triangle — matches Vercel's ▲ logo orientation.
         // r is the circumradius (center → vertex), same scale as the circle waves.
         const h = r * Math.sqrt(3) / 2;  // half-width at base
+        // White ▲ on dark, black ▲ on light. Read the theme live so a mid-wave
+        // toggle recolours correctly (same approach as the mono variant).
+        const rgb = document.documentElement.classList.contains('theme-dark') ? '255,255,255' : '0,0,0';
         ctx.beginPath();
         ctx.moveTo(sx,     sy - r);       // top vertex
         ctx.lineTo(sx + h, sy + r / 2);   // bottom-right
         ctx.lineTo(sx - h, sy + r / 2);   // bottom-left
         ctx.closePath();
-        ctx.strokeStyle = `rgba(255,255,255,${alpha.toFixed(3)})`;
+        ctx.strokeStyle = `rgba(${rgb},${alpha.toFixed(3)})`;
         ctx.lineWidth   = 2;
         ctx.shadowBlur  = 20;
-        ctx.shadowColor = `rgba(255,255,255,${(alpha * 0.6).toFixed(3)})`;
+        ctx.shadowColor = `rgba(${rgb},${(alpha * 0.6).toFixed(3)})`;
         ctx.stroke();
         ctx.shadowBlur  = 0;
         ctx.shadowColor = 'transparent';
