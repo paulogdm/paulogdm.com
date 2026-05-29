@@ -139,13 +139,13 @@
   // cost, which fights the perf goals above. 2× is the sharpness/perf sweet spot.
   const DPR_CAP = 2;
 
-  let fxCanvas    = null;
-  let fxCtx       = null;
-  let fxRaf       = 0;
-  let fxResizeRaf = 0;
-  let fxPausedAt  = 0; // performance.now() when the tab was hidden; 0 = running
-  let fxW         = 0;
-  let fxH         = 0;
+  let fxCanvas        = null;
+  let fxCtx           = null;
+  let fxRaf           = 0;
+  let fxResizePending = false;
+  let fxPausedAt      = 0; // performance.now() when the tab was hidden; 0 = running
+  let fxW             = 0;
+  let fxH             = 0;
   const effects = []; // active effects: { startedAt, duration, render, onEnd?, onResize? }
 
   function fxResize() {
@@ -163,13 +163,15 @@
 
   // 17: a resize burst (dragging a window edge) fires dozens of events; each
   // fxResize rebuilds the matrix/konami offscreen buffers and typed arrays.
-  // Coalesce to one rebuild per animation frame.
+  // Just flag it — fxTick applies the resize at the top of the next frame, so
+  // the canvas-clearing resize and the redraw happen in the same frame and in
+  // that order. Doing the resize in a *separate* rAF could land after the
+  // frame's draw, leaving a blank canvas for one frame (visible flash).
   function scheduleResize() {
-    if (fxResizeRaf) return;
-    fxResizeRaf = requestAnimationFrame(() => {
-      fxResizeRaf = 0;
-      fxResize();
-    });
+    fxResizePending = true;
+    // Ensure a frame runs to apply it — but not while paused (hidden tab),
+    // where onVisibility owns restarting the loop.
+    if (!fxRaf && !fxPausedAt) fxRaf = requestAnimationFrame(fxTick);
   }
 
   // 9: effects measure progress as (now - startedAt) on the wall clock. While a
@@ -202,9 +204,8 @@
 
   function stopRenderer() {
     if (fxRaf) cancelAnimationFrame(fxRaf);
-    if (fxResizeRaf) cancelAnimationFrame(fxResizeRaf);
     fxRaf = 0;
-    fxResizeRaf = 0;
+    fxResizePending = false;
     fxPausedAt = 0;
     effects.length = 0;
     if (fxCanvas) {
@@ -224,6 +225,14 @@
 
   function fxTick(now) {
     fxRaf = 0;
+
+    // Apply any pending resize first, in the same frame as the redraw below.
+    // (Resizing the backing store clears it, so the draw must follow it here.)
+    if (fxResizePending) {
+      fxResizePending = false;
+      fxResize();
+    }
+
     fxCtx.clearRect(0, 0, fxW, fxH); // single clear for the whole frame
 
     // Draw oldest → newest so freshly triggered effects layer on top.
