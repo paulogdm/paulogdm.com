@@ -31,7 +31,7 @@ html {
 
 body {
   margin: 0;
-  font-family: 'Inter Variable', 'Inter', sans-serif;
+  font-family: 'Inter Variable', sans-serif;
   font-size: 1rem;
   line-height: 1.5;
   background-color: var(--bg);
@@ -268,8 +268,7 @@ a:hover {
 /* Sonar wave easter egg canvas */
 .sonar-canvas {
   position: fixed;
-  top: 0;
-  left: 0;
+  inset: 0; /* pin to viewport origin — the canvas is appended at end of <body> */
   pointer-events: none;
   z-index: 9999;
 }
@@ -370,10 +369,17 @@ a:hover {
   border-radius: 50%;
   height: clamp(130px, 22vw, 200px);
   width: auto;
+  aspect-ratio: 1 / 1; /* reserve space before the 500×500 photo decodes — avoids CLS */
   user-select: none;
   touch-action: none;
   /* Spring-back when released */
   transition: transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* LQIP: a ~1KB 24px blur of the photo, inlined (no extra request). Shows
+     instantly and is covered once the full me.jpg paints over it. background-size
+     cover + the matching border-radius keep it aligned with the round frame. */
+  background-image: url('data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QBARXhpZgAATU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAGKADAAQAAAABAAAAGAAAAAD/7QA4UGhvdG9zaG9wIDMuMAA4QklNBAQAAAAAAAA4QklNBCUAAAAAABDUHYzZjwCyBOmACZjs+EJ+/8AAEQgAGAAYAwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAABAgMEBQYHCAkKC//EALUQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+v/EAB8BAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKC//EALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYXETIjKBCBRCkaGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+jp6vLz9PX29/j5+v/bAEMABAQEBAQECAQECAsICAgLDwsLCwsPEg8PDw8PEhYSEhISEhIWFhYWFhYWFhsbGxsbGx8fHx8fIyMjIyMjIyMjI//bAEMBBQYGCQgJDwgIDyQZFBkkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJP/dAAQAAv/aAAwDAQACEQMRAD8A87j0sKm4jpVnXfh14l022j1qXU7cRSDPkrHuAyMqCx6n1ruIbWNMO4yq8n0x3qP4k6f4YtfJv9yGGaF3jVW+8zFWBPtjiuLGVJw5eV2PWwNGFTm51seApENR06K/C7S+cjtkEg4PpkVW+wV232W3i0uFbTBiKblK9MNzx+dZXle1di1SbPPkkm0j/9D5I1nXte1+Xz7u5cqR90EhQD2CjirOv+NvEPiTSrPR7mOJI7OFYdyj55Ng2gsx9scCsaL/AI9x/uj+VQp1P1NE4Rk02jKnVnFSSe5a0vxJqmjRrbBzLbg8xtyP+Ant/Ktz/hPov+fY/wDfX/1q4Wf/AFZ+v9KzqRabsf/Z');
+  background-size: cover;
+  background-position: center;
 }
 
 .me-photo:hover {

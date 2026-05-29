@@ -139,11 +139,12 @@
   // cost, which fights the perf goals above. 2× is the sharpness/perf sweet spot.
   const DPR_CAP = 2;
 
-  let fxCanvas = null;
-  let fxCtx    = null;
-  let fxRaf    = 0;
-  let fxW      = 0;
-  let fxH      = 0;
+  let fxCanvas    = null;
+  let fxCtx       = null;
+  let fxRaf       = 0;
+  let fxResizeRaf = 0;
+  let fxW         = 0;
+  let fxH         = 0;
   const effects = []; // active effects: { startedAt, duration, render, onEnd?, onResize? }
 
   function fxResize() {
@@ -159,6 +160,17 @@
     for (const fx of effects) fx.onResize?.(fxW, fxH); // 13: let effects rebuild geometry
   }
 
+  // 17: a resize burst (dragging a window edge) fires dozens of events; each
+  // fxResize rebuilds the matrix/konami offscreen buffers and typed arrays.
+  // Coalesce to one rebuild per animation frame.
+  function scheduleResize() {
+    if (fxResizeRaf) return;
+    fxResizeRaf = requestAnimationFrame(() => {
+      fxResizeRaf = 0;
+      fxResize();
+    });
+  }
+
   function ensureCanvas() {
     if (fxCanvas) return;
     fxCanvas = document.createElement('canvas');
@@ -166,15 +178,17 @@
     fxCtx = fxCanvas.getContext('2d');
     document.body.appendChild(fxCanvas);
     fxResize();
-    window.addEventListener('resize', fxResize);
+    window.addEventListener('resize', scheduleResize);
   }
 
   function stopRenderer() {
     if (fxRaf) cancelAnimationFrame(fxRaf);
+    if (fxResizeRaf) cancelAnimationFrame(fxResizeRaf);
     fxRaf = 0;
+    fxResizeRaf = 0;
     effects.length = 0;
     if (fxCanvas) {
-      window.removeEventListener('resize', fxResize);
+      window.removeEventListener('resize', scheduleResize);
       fxCanvas.remove();
       fxCanvas = null;
       fxCtx = null;
@@ -295,7 +309,6 @@
     const SPEED   = variant === 'matrix' ? 440
                   : variant === 'vercel' ? 260
                   : 220;
-    const isDark  = document.documentElement.classList.contains('theme-dark');
 
     if (variant === 'matrix') addMatrixEffect();
 
@@ -320,12 +333,12 @@
         if (highlightEl) highlightEl.classList.remove('tl-company--lit');
       },
       render(ctx, elapsed) {
-        drawWave(ctx, elapsed, variant, SPEED, isDark, sources, rainbowGrads);
+        drawWave(ctx, elapsed, variant, SPEED, sources, rainbowGrads);
       },
     });
   }
 
-  function drawWave(ctx, elapsed, variant, SPEED, isDark, sources, rainbowGrads) {
+  function drawWave(ctx, elapsed, variant, SPEED, sources, rainbowGrads) {
     const W = fxW, H = fxH;
     const r = elapsed / 1000 * SPEED;
 
@@ -453,7 +466,8 @@
 
       let color, lineWidth;
       if (variant === 'mono') {
-        const rgb = isDark ? '255,255,255' : '0,0,0';
+        // Read the theme live so a mid-wave toggle recolours correctly (#18).
+        const rgb = document.documentElement.classList.contains('theme-dark') ? '255,255,255' : '0,0,0';
         color     = `rgba(${rgb},${alpha.toFixed(3)})`;
         lineWidth = 1;
         ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
@@ -725,7 +739,11 @@
         src="/assets/me.jpg"
         class="mx-auto d-block me-photo"
         alt="paulogdm"
+        width="500"
+        height="500"
         draggable="false"
+        fetchpriority="low"
+        decoding="async"
         style={photoStyle}
         onpointerdown={onPhotoDragStart}
         onpointermove={onPhotoMove}
