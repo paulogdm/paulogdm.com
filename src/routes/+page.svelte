@@ -56,35 +56,21 @@
   );
   // ── End photo drag resistance ─────────────────────────────────────────────
 
-  $effect(() => {
-    document.documentElement.classList.toggle('theme-dark', lights);
-    document.documentElement.classList.toggle('theme-light', !lights);
-  });
-
-  function getCookie(name) {
-    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-    return match ? match[2] : null;
-  }
-
-  function setCookie(name, value) {
-    document.cookie = `${name}=${value}; path=/; max-age=31536000`;
-  }
-
   function changeBackground() {
     lights = !lights;
-    setCookie('lights', lights ? 'on' : 'off');
+    document.documentElement.classList.toggle('theme-dark', lights);
+    document.documentElement.classList.toggle('theme-light', !lights);
+    // SameSite=Lax: this is a first-party preference cookie, never sent cross-site.
+    document.cookie = `lights=${lights ? 'on' : 'off'}; path=/; max-age=31536000; SameSite=Lax`;
   }
 
   onMount(() => {
     sparkEl = document.querySelector('.tl-spark');
 
-    const saved = getCookie('lights');
-    if (saved === 'on' || saved === 'off') {
-      lights = saved === 'on';
-    } else {
-      lights = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setCookie('lights', lights ? 'on' : 'off');
-    }
+    // The blocking script in app.html already resolved the theme (cookie →
+    // system preference) and applied the class before first paint. Sync our
+    // reactive state from that single source of truth rather than re-deriving it.
+    lights = document.documentElement.classList.contains('theme-dark');
 
     let keyBuf = '';
     const KONAMI_SEQ = ['arrowup','arrowup','arrowdown','arrowdown','arrowleft','arrowright','arrowleft','arrowright','b','a'];
@@ -569,7 +555,9 @@
   <meta property="og:description" content="Paulogdm personal page. Make yourself at home." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://paulogdm.com" />
-  <meta property="og:image" content="https://paulogdm.com/assets/ogimage.svg" />
+  <meta property="og:image" content="https://paulogdm.com/assets/ogimage.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:site" content="@paulogdm" />
 </svelte:head>
@@ -632,7 +620,7 @@
   <section
     class="tl-section animated fadeIn"
     style="animation-delay: 0.45s"
-    aria-label="Career timeline: Vercel Nov 2018 to Feb 2026, Clerk since June 2026"
+    aria-label="Career timeline: Vercel, November 2018 to February 2026. Clerk, June 2026 to now."
   >
     <div class="tl-wrap">
       <div class="tl-labels" aria-hidden="true">
