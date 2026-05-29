@@ -194,17 +194,25 @@
     // Draw oldest → newest so freshly triggered effects layer on top.
     for (let i = 0; i < effects.length; i++) {
       const fx = effects[i];
-      const elapsed = now - fx.startedAt;
+      // Clamp to 0: the rAF timestamp can be marginally earlier than the
+      // performance.now() captured at trigger time, which would make the first
+      // frame's elapsed — and any radius derived from it — slightly negative.
+      const elapsed = Math.max(0, now - fx.startedAt);
       if (elapsed >= fx.duration) continue; // expired; reaped below
       fxCtx.save();
-      fx.render(fxCtx, elapsed);
+      try {
+        fx.render(fxCtx, elapsed);
+      } catch {
+        fx.dead = true; // one effect's failure must never kill the shared loop
+      }
       fxCtx.restore();
     }
 
-    // Reap finished effects (back-to-front so splices don't shift the cursor).
+    // Reap finished or failed effects (back-to-front so splices don't shift i).
     for (let i = effects.length - 1; i >= 0; i--) {
-      if (now - effects[i].startedAt >= effects[i].duration) {
-        effects[i].onEnd?.();
+      const fx = effects[i];
+      if (fx.dead || now - fx.startedAt >= fx.duration) {
+        fx.onEnd?.();
         effects.splice(i, 1);
       }
     }
