@@ -118,12 +118,102 @@
       }
     }
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      stopRenderer(); // tear down canvas / RAF / resize listener on unmount
+    };
   });
 
-  let activeSonars = 0;
-  const MAX_SONARS = 3;
+  // ══════════════════════════════════════════════════════════════════════════
+  //  Easter-egg renderer
+  //
+  //  10-A: ONE canvas, ONE requestAnimationFrame loop, and a list of active
+  //  effects. Every effect (sonar waves, matrix rain, konami wave) draws onto
+  //  the same surface each frame instead of spawning its own canvas + RAF.
+  //  This also means HiDPI scaling (12) and resize handling (13) live in
+  //  exactly one place.
+  // ══════════════════════════════════════════════════════════════════════════
 
+  // Cap the backing-store scale: full DPR on a 3× phone would ~9× the fill
+  // cost, which fights the perf goals above. 2× is the sharpness/perf sweet spot.
+  const DPR_CAP = 2;
+
+  let fxCanvas = null;
+  let fxCtx    = null;
+  let fxRaf    = 0;
+  let fxW      = 0;
+  let fxH      = 0;
+  const effects = []; // active effects: { startedAt, duration, render, onEnd?, onResize? }
+
+  function fxResize() {
+    if (!fxCanvas) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, DPR_CAP);
+    fxW = window.innerWidth;
+    fxH = window.innerHeight;
+    fxCanvas.width        = Math.round(fxW * dpr);
+    fxCanvas.height       = Math.round(fxH * dpr);
+    fxCanvas.style.width  = fxW + 'px';
+    fxCanvas.style.height = fxH + 'px';
+    fxCtx.setTransform(dpr, 0, 0, dpr, 0, 0); // 13: all drawing code works in CSS px
+    for (const fx of effects) fx.onResize?.(fxW, fxH); // 13: let effects rebuild geometry
+  }
+
+  function ensureCanvas() {
+    if (fxCanvas) return;
+    fxCanvas = document.createElement('canvas');
+    fxCanvas.className = 'sonar-canvas';
+    fxCtx = fxCanvas.getContext('2d');
+    document.body.appendChild(fxCanvas);
+    fxResize();
+    window.addEventListener('resize', fxResize);
+  }
+
+  function stopRenderer() {
+    if (fxRaf) cancelAnimationFrame(fxRaf);
+    fxRaf = 0;
+    effects.length = 0;
+    if (fxCanvas) {
+      window.removeEventListener('resize', fxResize);
+      fxCanvas.remove();
+      fxCanvas = null;
+      fxCtx = null;
+    }
+  }
+
+  function addEffect(fx) {
+    fx.startedAt = performance.now();
+    effects.push(fx);
+    if (!fxRaf) fxRaf = requestAnimationFrame(fxTick);
+  }
+
+  function fxTick(now) {
+    fxRaf = 0;
+    fxCtx.clearRect(0, 0, fxW, fxH); // single clear for the whole frame
+
+    // Draw oldest → newest so freshly triggered effects layer on top.
+    for (let i = 0; i < effects.length; i++) {
+      const fx = effects[i];
+      const elapsed = now - fx.startedAt;
+      if (elapsed >= fx.duration) continue; // expired; reaped below
+      fxCtx.save();
+      fx.render(fxCtx, elapsed);
+      fxCtx.restore();
+    }
+
+    // Reap finished effects (back-to-front so splices don't shift the cursor).
+    for (let i = effects.length - 1; i >= 0; i--) {
+      if (now - effects[i].startedAt >= effects[i].duration) {
+        effects[i].onEnd?.();
+        effects.splice(i, 1);
+      }
+    }
+
+    if (effects.length) fxRaf = requestAnimationFrame(fxTick);
+    else stopRenderer();
+  }
+
+  // ── Variant selection ─────────────────────────────────────────────────────
   function pickVariant() {
     const r = Math.random() * 100;
     if (r < 0.5)  return 'rainbow';
@@ -143,8 +233,8 @@
 
   function triggerAllWaves() {
     const rect = sparkEl.getBoundingClientRect();
-    const cx    = rect.left + rect.width / 2;
-    const cy    = rect.top  + rect.height / 2;
+    const cx   = rect.left + rect.width  / 2;
+    const cy   = rect.top  + rect.height / 2;
     ALL_VARIANTS.forEach((v, i) => setTimeout(() => spawnWave(cx, cy, v, true), i * 1000));
   }
 
@@ -154,378 +244,409 @@
     spawnWave(rect.left + rect.width / 2, rect.top + rect.height / 2, null);
   }
 
-  // ── MATRIX RAIN ─────────────────────────────────────────────────────────────
-  // Full-page falling-character overlay triggered alongside the matrix wave.
-  // Remove the spawnMatrixRain() call in spawnWave and this entire block to
-  // disable the effect without touching anything else.
-  function spawnMatrixRain() {
-    const DURATION  = 8000;
-    const CHARS     = 'ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ0123456789';
-    const FONT_SIZE = 14;
+  // ── Sonar waves ───────────────────────────────────────────────────────────
+  const WAVE_DURATION = 5000;
+  const MAX_SONARS    = 3;
+  let   waveCount     = 0; // concurrent wave effects, for the MAX_SONARS cap
 
-    const canvas  = document.createElement('canvas');
-    canvas.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:9998;';
-    const W = canvas.width  = window.innerWidth;
-    const H = canvas.height = window.innerHeight;
-    document.body.appendChild(canvas);
-    const ctx = canvas.getContext('2d');
-
-    const cols     = Math.floor(W / FONT_SIZE);
-    const drops    = Array.from({ length: cols }, () => Math.random() * -H / FONT_SIZE | 0);
-    const headChar = Array.from({ length: cols }, () => CHARS[Math.random() * CHARS.length | 0]);
-    const bodyChar = Array.from({ length: cols }, () => CHARS[Math.random() * CHARS.length | 0]);
-    const start    = performance.now();
-    let frame      = 0;
-
-    function tick(now) {
-      const elapsed  = now - start;
-      if (elapsed >= DURATION) { canvas.remove(); return; }
-
-      const fadeOut = elapsed > 5000 ? 1 - (elapsed - 5000) / 3000 : 1;
-
-      canvas.style.opacity = fadeOut;
-
-      ctx.fillStyle = 'rgba(0,0,0,0.05)';
-      ctx.fillRect(0, 0, W, H);
-
-      ctx.font = `${FONT_SIZE}px monospace`;
-
-      const advance = (frame % 6 === 0);
-      frame++;
-
-      for (let i = 0; i < drops.length; i++) {
-        const x = i * FONT_SIZE;
-        const y = drops[i] * FONT_SIZE;
-
-        if (advance) {
-          headChar[i] = CHARS[Math.random() * CHARS.length | 0];
-          bodyChar[i] = CHARS[Math.random() * CHARS.length | 0];
-        }
-
-        ctx.fillStyle = `rgba(180,255,180,${0.95 * fadeOut})`;
-        ctx.fillText(headChar[i], x, y);
-
-        ctx.fillStyle = `rgba(0,255,65,${0.55 * fadeOut})`;
-        ctx.fillText(bodyChar[i], x, y - FONT_SIZE);
-
-        if (advance) {
-          if (y > H && Math.random() > 0.975) drops[i] = 0;
-          else drops[i]++;
-        }
-      }
-
-      requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
+  // The nine "sources" are the real click point plus its reflections across the
+  // four viewport edges and corners, so waves appear to bounce. Pure function of
+  // (cx, cy, W, H) — recomputed on resize (13) so reflections stay aligned.
+  function buildSources(cx, cy, W, H, SPEED) {
+    const s = (dist) => dist / SPEED * 1000;
+    return [
+      { sx: cx,       sy: cy,       a: 1.00, bornAt: 0                            },
+      { sx: -cx,      sy: cy,       a: 0.70, bornAt: s(cx)                        },
+      { sx: 2*W-cx,   sy: cy,       a: 0.70, bornAt: s(W - cx)                    },
+      { sx: cx,       sy: -cy,      a: 0.70, bornAt: s(cy)                        },
+      { sx: cx,       sy: 2*H-cy,   a: 0.70, bornAt: s(H - cy)                    },
+      { sx: -cx,      sy: -cy,      a: 0.40, bornAt: s(Math.hypot(cx, cy))        },
+      { sx: 2*W-cx,   sy: -cy,      a: 0.40, bornAt: s(Math.hypot(W-cx, cy))      },
+      { sx: -cx,      sy: 2*H-cy,   a: 0.40, bornAt: s(Math.hypot(cx, H-cy))      },
+      { sx: 2*W-cx,   sy: 2*H-cy,   a: 0.40, bornAt: s(Math.hypot(W-cx, H-cy))    },
+    ];
   }
-  // ── END MATRIX RAIN ──────────────────────────────────────────────────────────
 
-  // ── KONAMI WAVE ──────────────────────────────────────────────────────────────
-  function spawnKonamiWave() {
-    if (prefersReducedMotion()) return;
-    const DURATION   = 7000;
-    const BLOCK      = 8;
-    const NES_COLORS = ['#FF0000','#FF7700','#FFFF00','#00CC00','#00CCFF','#0000FF','#CC00FF','#FF00CC','#FFFFFF'];
-
-    const canvas = document.createElement('canvas');
-    canvas.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:9999;';
-    const W = canvas.width  = window.innerWidth;
-    const H = canvas.height = window.innerHeight;
-    document.body.appendChild(canvas);
-    const ctx = canvas.getContext('2d');
-
-    const sr = sparkEl.getBoundingClientRect();
-    const cx = sr.left + sr.width  / 2;
-    const cy    = sr.top  + sr.height / 2;
-
-    const start = performance.now();
-    let colorIdx = 0;
-    let frame    = 0;
-
-    function tick(now) {
-      const elapsed = now - start;
-      if (elapsed >= DURATION) { canvas.remove(); return; }
-
-      // Fade the whole canvas element after 4.5s, same pattern as matrix rain
-      canvas.style.opacity = elapsed > 4500 ? 1 - (elapsed - 4500) / 2500 : 1;
-
-      ctx.clearRect(0, 0, W, H);
-
-      ctx.fillStyle = 'rgba(0,0,0,0.18)';
-      for (let y = 0; y < H; y += 4) ctx.fillRect(0, y, W, 2);
-
-      if (frame % 10 === 0) colorIdx = (colorIdx + 1) % NES_COLORS.length;
-      frame++;
-
-      const r     = elapsed / 1000 * 220;
-      const color = NES_COLORS[colorIdx];
-
-      const steps = Math.max(48, Math.ceil(2 * Math.PI * r / BLOCK) * 2);
-      ctx.globalAlpha = 1;
-      ctx.fillStyle   = color;
-      const drawn = new Set();
-      for (let i = 0; i < steps; i++) {
-        const angle = (i / steps) * Math.PI * 2;
-        for (let w = 0; w < 3; w++) {
-          const pr = r - w * BLOCK;
-          if (pr < 1) continue;
-          const bx = Math.round((cx + Math.cos(angle) * pr) / BLOCK) * BLOCK;
-          const by = Math.round((cy + Math.sin(angle) * pr) / BLOCK) * BLOCK;
-          const key = `${bx},${by}`;
-          if (drawn.has(key)) continue;
-          drawn.add(key);
-          ctx.fillRect(bx, by, BLOCK, BLOCK);
-        }
-      }
-
-      if (elapsed < 2200) {
-        const floatY   = cy - 20 - (elapsed / 2200) * 70;
-        const textFade = elapsed < 1600 ? 1 : 1 - (elapsed - 1600) / 600;
-        ctx.globalAlpha  = textFade;
-        ctx.fillStyle    = '#FFFF00';
-        ctx.font         = 'bold 22px monospace';
-        ctx.textAlign    = 'center';
-        ctx.shadowBlur   = 10;
-        ctx.shadowColor  = '#FF8800';
-        ctx.fillText('1UP', cx, floatY);
-        ctx.shadowBlur   = 0;
-        ctx.textAlign    = 'left';
-      }
-
-      ctx.globalAlpha = 1;
-      requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
+  // 11: build one conic gradient per source ONCE. Colour flow is achieved by
+  // rotating the context at fill time, so no gradients are allocated per frame
+  // (was 9 gradients + 117 colour stops every frame).
+  function buildRainbowGrads(ctx, sources) {
+    return sources.map(({ sx, sy }) => {
+      const g = ctx.createConicGradient(0, sx, sy);
+      for (let j = 0; j <= 12; j++) g.addColorStop(j / 12, `hsl(${(j / 12) * 360},100%,58%)`);
+      return g;
+    });
   }
-  // ── END KONAMI WAVE ───────────────────────────────────────────────────────────
 
   function spawnWave(cx, cy, forcedVariant, bypassLimit = false) {
-    if (prefersReducedMotion()) return; // defensive: also stops late triggerAllWaves timeouts
-    if (!bypassLimit && activeSonars >= MAX_SONARS) return;
-    activeSonars++;
+    if (prefersReducedMotion()) return;
+    if (!bypassLimit && waveCount >= MAX_SONARS) return;
+    ensureCanvas();
 
-    const canvas = document.createElement('canvas');
-    canvas.className = 'sonar-canvas';
-    const W = canvas.width  = window.innerWidth;
-    const H = canvas.height = window.innerHeight;
-    document.body.appendChild(canvas);
-    const ctx = canvas.getContext('2d');
+    const variant = forcedVariant ?? pickVariant();
+    const SPEED   = variant === 'matrix' ? 440
+                  : variant === 'vercel' ? 260
+                  : 220;
+    const isDark  = document.documentElement.classList.contains('theme-dark');
 
-    const variant  = forcedVariant ?? pickVariant();
-    if (variant === 'matrix') spawnMatrixRain();
-    const DURATION = 5000;
-    const SPEED    = variant === 'matrix' ? 440
-                   : variant === 'vercel' ? 260
-                   : 220;
-    const isDark   = document.documentElement.classList.contains('theme-dark');
+    if (variant === 'matrix') addMatrixEffect();
 
     const highlightEl = variant === 'vercel' ? document.querySelector('.tl-vercel')
                       : variant === 'clerk'  ? document.querySelector('.tl-clerk')
                       : null;
     if (highlightEl) highlightEl.classList.add('tl-company--lit');
 
-    const s = (dist) => dist / SPEED * 1000;
-    const sources = [
-      { sx: cx,       sy: cy,       a: 1.00, bornAt: 0                              },
-      { sx: -cx,      sy: cy,       a: 0.70, bornAt: s(cx)                          },
-      { sx: 2*W-cx,   sy: cy,       a: 0.70, bornAt: s(W - cx)                      },
-      { sx: cx,       sy: -cy,      a: 0.70, bornAt: s(cy)                          },
-      { sx: cx,       sy: 2*H-cy,   a: 0.70, bornAt: s(H - cy)                      },
-      { sx: -cx,      sy: -cy,      a: 0.40, bornAt: s(Math.hypot(cx, cy))          },
-      { sx: 2*W-cx,   sy: -cy,      a: 0.40, bornAt: s(Math.hypot(W-cx, cy))       },
-      { sx: -cx,      sy: 2*H-cy,   a: 0.40, bornAt: s(Math.hypot(cx, H-cy))       },
-      { sx: 2*W-cx,   sy: 2*H-cy,   a: 0.40, bornAt: s(Math.hypot(W-cx, H-cy))    },
-    ];
+    let sources      = buildSources(cx, cy, fxW, fxH, SPEED);
+    let rainbowGrads = variant === 'rainbow' ? buildRainbowGrads(fxCtx, sources) : null;
 
-    // Rainbow gradients are rebuilt each frame with a rotating startAngle so
-    // colours appear to flow anti-clockwise. One full revolution per 4 s.
-    // The per-frame cost (9 allocations) is acceptable for this rare variant.
-    const rainbowGrads = variant === 'rainbow' ? [] : null;
+    waveCount++;
 
-    const start = performance.now();
-
-    function tick(now) {
-      const elapsed = now - start;
-
-      if (elapsed >= DURATION) {
-        canvas.remove();
-        activeSonars--;
+    addEffect({
+      duration: WAVE_DURATION,
+      onResize(W, H) {
+        sources = buildSources(cx, cy, W, H, SPEED);
+        if (variant === 'rainbow') rainbowGrads = buildRainbowGrads(fxCtx, sources);
+      },
+      onEnd() {
+        waveCount--;
         if (highlightEl) highlightEl.classList.remove('tl-company--lit');
-        return;
+      },
+      render(ctx, elapsed) {
+        drawWave(ctx, elapsed, variant, SPEED, isDark, sources, rainbowGrads);
+      },
+    });
+  }
+
+  function drawWave(ctx, elapsed, variant, SPEED, isDark, sources, rainbowGrads) {
+    const W = fxW, H = fxH;
+    const r = elapsed / 1000 * SPEED;
+
+    if (variant === 'void') {
+      // Dark overlay covers the page; destination-out punches transparent ring
+      // annuli through it, revealing the page in a growing circular window.
+      const globalAlpha = Math.max(0, 1 - elapsed / WAVE_DURATION);
+      const ringW = 40;
+
+      ctx.fillStyle = `rgba(0,0,0,${(0.82 * globalAlpha).toFixed(3)})`;
+      ctx.fillRect(0, 0, W, H);
+
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.fillStyle = 'rgba(0,0,0,1)';
+      for (const { sx, sy, bornAt } of sources) {
+        if (elapsed < bornAt) continue;
+        const rw = bornAt === 0 ? ringW : ringW * 0.7;
+        ctx.beginPath();
+        ctx.arc(sx, sy, r + rw / 2, 0, Math.PI * 2, false);
+        ctx.arc(sx, sy, Math.max(0, r - rw / 2), 0, Math.PI * 2, true);
+        ctx.fill('evenodd');
       }
-
-      if (rainbowGrads) {
-        const angle = elapsed * Math.PI / 2000; // 2π per 4000 ms, CW rotation → CCW colour flow
-        for (let i = 0; i < sources.length; i++) {
-          const { sx, sy } = sources[i];
-          const g = ctx.createConicGradient(angle, sx, sy);
-          for (let j = 0; j <= 12; j++) g.addColorStop(j / 12, `hsl(${(j / 12) * 360},100%,58%)`);
-          rainbowGrads[i] = g;
-        }
-      }
-
-      const r = elapsed / 1000 * SPEED;
-      ctx.clearRect(0, 0, W, H);
-
-      if (variant === 'void') {
-        // Dark overlay covers the page; destination-out punches transparent ring
-        // annuli through it, revealing the page in a growing circular window.
-        const globalAlpha = Math.max(0, 1 - elapsed / DURATION);
-        const ringW = 40;
-
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.fillStyle = `rgba(0,0,0,${(0.82 * globalAlpha).toFixed(3)})`;
-        ctx.fillRect(0, 0, W, H);
-
-        ctx.globalCompositeOperation = 'destination-out';
-        ctx.fillStyle = 'rgba(0,0,0,1)';
-        for (const { sx, sy, bornAt } of sources) {
-          if (elapsed < bornAt) continue;
-          const rw = bornAt === 0 ? ringW : ringW * 0.7;
-          ctx.beginPath();
-          ctx.arc(sx, sy, r + rw / 2, 0, Math.PI * 2, false);
-          ctx.arc(sx, sy, Math.max(0, r - rw / 2), 0, Math.PI * 2, true);
-          ctx.fill('evenodd');
-        }
-        ctx.globalCompositeOperation = 'source-over';
-      } else {
-        for (let si = 0; si < sources.length; si++) {
-          const { sx, sy, a, bornAt } = sources[si];
-          if (elapsed < bornAt) continue;
-          const remaining = DURATION - bornAt;
-          const alpha = a * Math.max(0, 1 - (elapsed - bornAt) / remaining);
-          if (alpha < 0.01) continue;
-
-          if (variant === 'rainbow') {
-            ctx.fillStyle = rainbowGrads[si];
-
-            // Glow pass — wider ring, faint
-            ctx.globalAlpha = alpha * 0.28;
-            ctx.beginPath();
-            ctx.arc(sx, sy, r + 12, 0, Math.PI * 2, false);
-            ctx.arc(sx, sy, Math.max(1, r - 12), 0, Math.PI * 2, true);
-            ctx.fill('evenodd');
-
-            // Main ring
-            ctx.globalAlpha = alpha;
-            ctx.beginPath();
-            ctx.arc(sx, sy, r + 3, 0, Math.PI * 2, false);
-            ctx.arc(sx, sy, Math.max(1, r - 3), 0, Math.PI * 2, true);
-            ctx.fill('evenodd');
-
-            ctx.globalAlpha = 1;
-            continue;
-          }
-
-          if (variant === 'glitch') {
-            // Chromatic aberration: red and cyan channels drift apart each 180ms
-            const phase = Math.floor(elapsed / 180);
-            const dx = Math.sin(phase * 2.7) * 7;
-            const dy = Math.cos(phase * 1.9) * 5;
-            ctx.lineWidth = 1; ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
-            ctx.beginPath(); ctx.arc(sx - dx, sy - dy, r, 0, Math.PI * 2);
-            ctx.strokeStyle = `rgba(255,60,60,${(alpha * 0.85).toFixed(3)})`; ctx.stroke();
-            ctx.beginPath(); ctx.arc(sx + dx, sy + dy, r, 0, Math.PI * 2);
-            ctx.strokeStyle = `rgba(60,255,220,${(alpha * 0.85).toFixed(3)})`; ctx.stroke();
-            continue;
-          }
-
-          if (variant === 'ripple') {
-            // Three concentric rings spaced 28px apart, trailing off in opacity
-            ctx.lineWidth = 1; ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
-            for (const [offset, fade] of [[0, 1.0], [-28, 0.55], [-56, 0.25]]) {
-              const rr = r + offset;
-              if (rr < 1) continue;
-              ctx.beginPath(); ctx.arc(sx, sy, rr, 0, Math.PI * 2);
-              ctx.strokeStyle = `rgba(255,102,0,${(alpha * fade).toFixed(3)})`; ctx.stroke();
-            }
-            continue;
-          }
-
-          if (variant === 'vercel') {
-            if (bornAt !== 0) continue;  // no reflections — single expanding triangle
-            // Expanding equilateral triangle — matches Vercel's ▲ logo orientation.
-            // r is the circumradius (center → vertex), same scale as the circle waves.
-            const h = r * Math.sqrt(3) / 2;  // half-width at base
-            ctx.beginPath();
-            ctx.moveTo(sx,         sy - r);          // top vertex
-            ctx.lineTo(sx + h,     sy + r / 2);      // bottom-right
-            ctx.lineTo(sx - h,     sy + r / 2);      // bottom-left
-            ctx.closePath();
-            ctx.strokeStyle = `rgba(255,255,255,${alpha.toFixed(3)})`;
-            ctx.lineWidth   = 2;
-            ctx.shadowBlur  = 20;
-            ctx.shadowColor = `rgba(255,255,255,${(alpha * 0.6).toFixed(3)})`;
-            ctx.stroke();
-            ctx.shadowBlur  = 0;
-            ctx.shadowColor = 'transparent';
-            continue;
-          }
-
-          let color, lineWidth;
-
-          if (variant === 'mono') {
-            const rgb = isDark ? '255,255,255' : '0,0,0';
-            color     = `rgba(${rgb},${alpha.toFixed(3)})`;
-            lineWidth = 1;
-            ctx.shadowBlur  = 0;
-            ctx.shadowColor = 'transparent';
-          } else if (variant === 'matrix') {
-            color          = `rgba(0,255,65,${alpha.toFixed(3)})`;
-            lineWidth      = 2;
-            ctx.shadowBlur  = 18;
-            ctx.shadowColor = `rgba(0,255,65,${(alpha * 0.9).toFixed(3)})`;
-          } else if (variant === 'gold') {
-            color          = `rgba(255,210,0,${alpha.toFixed(3)})`;
-            lineWidth      = 2;
-            ctx.shadowBlur  = 14;
-            ctx.shadowColor = `rgba(255,210,0,${(alpha * 0.7).toFixed(3)})`;
-          } else if (variant === 'ghost') {
-            // Three-pass layered glow: wide bloom → mid halo → bright core
-            const layers = [
-              { blur: 48, width: 12, color: `rgba(160,60,255,${(alpha * 0.18).toFixed(3)})` },
-              { blur: 22, width: 5,  color: `rgba(190,100,255,${(alpha * 0.45).toFixed(3)})` },
-              { blur: 8,  width: 2,  color: `rgba(230,180,255,${(alpha * 0.9).toFixed(3)})` },
-            ];
-            for (const layer of layers) {
-              ctx.beginPath();
-              ctx.arc(sx, sy, r, 0, Math.PI * 2);
-              ctx.lineWidth   = layer.width;
-              ctx.strokeStyle = layer.color;
-              ctx.shadowBlur  = layer.blur;
-              ctx.shadowColor = `rgba(150,50,255,${(alpha * 0.7).toFixed(3)})`;
-              ctx.stroke();
-            }
-            ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
-            continue;
-          } else if (variant === 'clerk') {
-            color          = `rgba(108,71,255,${alpha.toFixed(3)})`;
-            lineWidth      = 2;
-            ctx.shadowBlur  = 14;
-            ctx.shadowColor = `rgba(108,71,255,${(alpha * 0.7).toFixed(3)})`;
-          } else {
-            // default
-            color     = `rgba(255,102,0,${alpha.toFixed(3)})`;
-            lineWidth = 1;
-            ctx.shadowBlur  = 0;
-            ctx.shadowColor = 'transparent';
-          }
-
-          ctx.beginPath();
-          ctx.arc(sx, sy, r, 0, Math.PI * 2);
-          ctx.strokeStyle = color;
-          ctx.lineWidth   = lineWidth;
-          ctx.stroke();
-        }
-
-        ctx.shadowBlur  = 0;
-        ctx.shadowColor = 'transparent';
-      }
-
-      requestAnimationFrame(tick);
+      return;
     }
 
-    requestAnimationFrame(tick);
+    for (let si = 0; si < sources.length; si++) {
+      const { sx, sy, a, bornAt } = sources[si];
+      if (elapsed < bornAt) continue;
+      const remaining = WAVE_DURATION - bornAt;
+      const alpha = a * Math.max(0, 1 - (elapsed - bornAt) / remaining);
+      if (alpha < 0.01) continue;
+
+      if (variant === 'rainbow') {
+        // Rotate the context about the source so the (statically built) conic
+        // gradient appears to flow. One full revolution per 4 s.
+        const angle = elapsed * Math.PI / 2000;
+        ctx.save();
+        ctx.translate(sx, sy);
+        ctx.rotate(angle);
+        ctx.translate(-sx, -sy);
+        ctx.fillStyle = rainbowGrads[si];
+
+        ctx.globalAlpha = alpha * 0.28; // glow pass — wider ring, faint
+        ctx.beginPath();
+        ctx.arc(sx, sy, r + 12, 0, Math.PI * 2, false);
+        ctx.arc(sx, sy, Math.max(1, r - 12), 0, Math.PI * 2, true);
+        ctx.fill('evenodd');
+
+        ctx.globalAlpha = alpha; // main ring
+        ctx.beginPath();
+        ctx.arc(sx, sy, r + 3, 0, Math.PI * 2, false);
+        ctx.arc(sx, sy, Math.max(1, r - 3), 0, Math.PI * 2, true);
+        ctx.fill('evenodd');
+
+        ctx.restore();
+        continue;
+      }
+
+      if (variant === 'glitch') {
+        // Chromatic aberration: red and cyan channels drift apart each 180ms
+        const phase = Math.floor(elapsed / 180);
+        const dx = Math.sin(phase * 2.7) * 7;
+        const dy = Math.cos(phase * 1.9) * 5;
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.arc(sx - dx, sy - dy, r, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(255,60,60,${(alpha * 0.85).toFixed(3)})`; ctx.stroke();
+        ctx.beginPath(); ctx.arc(sx + dx, sy + dy, r, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(60,255,220,${(alpha * 0.85).toFixed(3)})`; ctx.stroke();
+        continue;
+      }
+
+      if (variant === 'ripple') {
+        // Three concentric rings spaced 28px apart, trailing off in opacity
+        ctx.lineWidth = 1;
+        for (const [offset, fade] of [[0, 1.0], [-28, 0.55], [-56, 0.25]]) {
+          const rr = r + offset;
+          if (rr < 1) continue;
+          ctx.beginPath(); ctx.arc(sx, sy, rr, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(255,102,0,${(alpha * fade).toFixed(3)})`; ctx.stroke();
+        }
+        continue;
+      }
+
+      if (variant === 'vercel') {
+        if (bornAt !== 0) continue;  // no reflections — single expanding triangle
+        // Expanding equilateral triangle — matches Vercel's ▲ logo orientation.
+        // r is the circumradius (center → vertex), same scale as the circle waves.
+        const h = r * Math.sqrt(3) / 2;  // half-width at base
+        ctx.beginPath();
+        ctx.moveTo(sx,     sy - r);       // top vertex
+        ctx.lineTo(sx + h, sy + r / 2);   // bottom-right
+        ctx.lineTo(sx - h, sy + r / 2);   // bottom-left
+        ctx.closePath();
+        ctx.strokeStyle = `rgba(255,255,255,${alpha.toFixed(3)})`;
+        ctx.lineWidth   = 2;
+        ctx.shadowBlur  = 20;
+        ctx.shadowColor = `rgba(255,255,255,${(alpha * 0.6).toFixed(3)})`;
+        ctx.stroke();
+        ctx.shadowBlur  = 0;
+        ctx.shadowColor = 'transparent';
+        continue;
+      }
+
+      if (variant === 'ghost') {
+        // Three-pass layered glow: wide bloom → mid halo → bright core.
+        // 11: blur radii capped (was 48/22/8) — large shadowBlur is the most
+        // expensive canvas op and dominated this variant's per-frame cost.
+        const layers = [
+          { blur: 24, width: 12, color: `rgba(160,60,255,${(alpha * 0.18).toFixed(3)})` },
+          { blur: 16, width: 5,  color: `rgba(190,100,255,${(alpha * 0.45).toFixed(3)})` },
+          { blur: 8,  width: 2,  color: `rgba(230,180,255,${(alpha * 0.9).toFixed(3)})` },
+        ];
+        for (const layer of layers) {
+          ctx.beginPath();
+          ctx.arc(sx, sy, r, 0, Math.PI * 2);
+          ctx.lineWidth   = layer.width;
+          ctx.strokeStyle = layer.color;
+          ctx.shadowBlur  = layer.blur;
+          ctx.shadowColor = `rgba(150,50,255,${(alpha * 0.7).toFixed(3)})`;
+          ctx.stroke();
+        }
+        ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
+        continue;
+      }
+
+      let color, lineWidth;
+      if (variant === 'mono') {
+        const rgb = isDark ? '255,255,255' : '0,0,0';
+        color     = `rgba(${rgb},${alpha.toFixed(3)})`;
+        lineWidth = 1;
+        ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
+      } else if (variant === 'matrix') {
+        color     = `rgba(0,255,65,${alpha.toFixed(3)})`;
+        lineWidth = 2;
+        ctx.shadowBlur = 18; ctx.shadowColor = `rgba(0,255,65,${(alpha * 0.9).toFixed(3)})`;
+      } else if (variant === 'gold') {
+        color     = `rgba(255,210,0,${alpha.toFixed(3)})`;
+        lineWidth = 2;
+        ctx.shadowBlur = 14; ctx.shadowColor = `rgba(255,210,0,${(alpha * 0.7).toFixed(3)})`;
+      } else if (variant === 'clerk') {
+        color     = `rgba(108,71,255,${alpha.toFixed(3)})`;
+        lineWidth = 2;
+        ctx.shadowBlur = 14; ctx.shadowColor = `rgba(108,71,255,${(alpha * 0.7).toFixed(3)})`;
+      } else {
+        color     = `rgba(255,102,0,${alpha.toFixed(3)})`; // default
+        lineWidth = 1;
+        ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
+      }
+
+      ctx.beginPath();
+      ctx.arc(sx, sy, r, 0, Math.PI * 2);
+      ctx.strokeStyle = color;
+      ctx.lineWidth   = lineWidth;
+      ctx.stroke();
+    }
+
+    ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
+  }
+
+  // ── Matrix rain ───────────────────────────────────────────────────────────
+  // Full-page falling-character overlay triggered alongside the matrix wave.
+  // The trail effect needs frame-to-frame persistence, which the shared (cleared
+  // every frame) canvas can't provide — so it accumulates on its own offscreen
+  // buffer and is composited onto the shared canvas each frame. Singleton.
+  const MATRIX_DURATION = 8000;
+  let matrixFx = null;
+
+  function addMatrixEffect() {
+    if (prefersReducedMotion()) return;
+    ensureCanvas();
+    if (matrixFx) { // restart rather than stack a second instance
+      const idx = effects.indexOf(matrixFx);
+      if (idx >= 0) effects.splice(idx, 1);
+      matrixFx = null;
+    }
+
+    const CHARS     = 'ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ0123456789';
+    const FONT_SIZE = 14;
+
+    let buf, bctx, cols, drops, headChar, bodyChar;
+    function build(W, H) {
+      buf = document.createElement('canvas');
+      buf.width = W; buf.height = H;
+      bctx = buf.getContext('2d');
+      cols     = Math.floor(W / FONT_SIZE);
+      drops    = Array.from({ length: cols }, () => Math.random() * -H / FONT_SIZE | 0);
+      headChar = Array.from({ length: cols }, () => CHARS[Math.random() * CHARS.length | 0]);
+      bodyChar = Array.from({ length: cols }, () => CHARS[Math.random() * CHARS.length | 0]);
+    }
+    build(fxW, fxH);
+    let frame = 0;
+
+    matrixFx = {
+      duration: MATRIX_DURATION,
+      onResize(W, H) { build(W, H); },
+      onEnd() { matrixFx = null; },
+      render(ctx, elapsed) {
+        const W = fxW, H = fxH;
+        const fadeOut = elapsed > 5000 ? 1 - (elapsed - 5000) / 3000 : 1;
+
+        // Accumulate on the offscreen buffer (semi-transparent black = trail).
+        bctx.fillStyle = 'rgba(0,0,0,0.05)';
+        bctx.fillRect(0, 0, W, H);
+        bctx.font = `${FONT_SIZE}px monospace`;
+
+        const advance = (frame % 6 === 0);
+        frame++;
+
+        for (let i = 0; i < drops.length; i++) {
+          const x = i * FONT_SIZE;
+          const y = drops[i] * FONT_SIZE;
+          if (advance) {
+            headChar[i] = CHARS[Math.random() * CHARS.length | 0];
+            bodyChar[i] = CHARS[Math.random() * CHARS.length | 0];
+          }
+          bctx.fillStyle = 'rgba(180,255,180,0.95)';
+          bctx.fillText(headChar[i], x, y);
+          bctx.fillStyle = 'rgba(0,255,65,0.55)';
+          bctx.fillText(bodyChar[i], x, y - FONT_SIZE);
+          if (advance) {
+            if (y > H && Math.random() > 0.975) drops[i] = 0;
+            else drops[i]++;
+          }
+        }
+
+        ctx.globalAlpha = Math.max(0, fadeOut);
+        ctx.drawImage(buf, 0, 0, W, H);
+      },
+    };
+    addEffect(matrixFx);
+  }
+
+  // ── Konami wave ───────────────────────────────────────────────────────────
+  const KONAMI_DURATION = 7000;
+  let konamiFx = null;
+
+  function spawnKonamiWave() {
+    if (prefersReducedMotion()) return;
+    ensureCanvas();
+    if (konamiFx) { // restart rather than stack
+      const idx = effects.indexOf(konamiFx);
+      if (idx >= 0) effects.splice(idx, 1);
+      konamiFx = null;
+    }
+
+    const BLOCK      = 8;
+    const NES_COLORS = ['#FF0000','#FF7700','#FFFF00','#00CC00','#00CCFF','#0000FF','#CC00FF','#FF00CC','#FFFFFF'];
+
+    const sr = sparkEl.getBoundingClientRect();
+    const cx = sr.left + sr.width  / 2;
+    const cy = sr.top  + sr.height / 2;
+
+    // 11: scanlines as a single tiled fill (2px bar / 2px gap) instead of
+    // ~H/4 fillRect calls per frame.
+    const scan = document.createElement('canvas');
+    scan.width = 1; scan.height = 4;
+    const sctx = scan.getContext('2d');
+    sctx.fillStyle = 'rgba(0,0,0,0.18)';
+    sctx.fillRect(0, 0, 1, 2);
+    const scanPattern = fxCtx.createPattern(scan, 'repeat');
+
+    // 11: reused typed-array grid for block dedup, replacing a per-frame Set of
+    // string keys (which churned the GC as the ring radius grew).
+    let cols, rows, visited;
+    function build(W, H) {
+      cols    = Math.ceil(W / BLOCK) + 3;
+      rows    = Math.ceil(H / BLOCK) + 3;
+      visited = new Uint8Array(cols * rows);
+    }
+    build(fxW, fxH);
+
+    let colorIdx = 0, frame = 0;
+
+    konamiFx = {
+      duration: KONAMI_DURATION,
+      onResize(W, H) { build(W, H); },
+      onEnd() { konamiFx = null; },
+      render(ctx, elapsed) {
+        const W = fxW, H = fxH;
+        const elemFade = elapsed > 4500 ? 1 - (elapsed - 4500) / 2500 : 1;
+        ctx.globalAlpha = Math.max(0, elemFade);
+
+        ctx.fillStyle = scanPattern;
+        ctx.fillRect(0, 0, W, H);
+
+        if (frame % 10 === 0) colorIdx = (colorIdx + 1) % NES_COLORS.length;
+        frame++;
+
+        const r = elapsed / 1000 * 220;
+        ctx.fillStyle = NES_COLORS[colorIdx];
+        visited.fill(0);
+
+        const steps = Math.max(48, Math.ceil(2 * Math.PI * r / BLOCK) * 2);
+        for (let i = 0; i < steps; i++) {
+          const angle = (i / steps) * Math.PI * 2;
+          for (let w = 0; w < 3; w++) {
+            const pr = r - w * BLOCK;
+            if (pr < 1) continue;
+            const bx = Math.round((cx + Math.cos(angle) * pr) / BLOCK) * BLOCK;
+            const by = Math.round((cy + Math.sin(angle) * pr) / BLOCK) * BLOCK;
+            const gx = (bx / BLOCK) + 1; // +1 so the -1 fringe maps to index 0
+            const gy = (by / BLOCK) + 1;
+            if (gx < 0 || gy < 0 || gx >= cols || gy >= rows) {
+              ctx.fillRect(bx, by, BLOCK, BLOCK); // off-grid: draw without dedup
+              continue;
+            }
+            const idx = gy * cols + gx;
+            if (visited[idx]) continue;
+            visited[idx] = 1;
+            ctx.fillRect(bx, by, BLOCK, BLOCK);
+          }
+        }
+
+        if (elapsed < 2200) {
+          const floatY   = cy - 20 - (elapsed / 2200) * 70;
+          const textFade = elapsed < 1600 ? 1 : 1 - (elapsed - 1600) / 600;
+          ctx.globalAlpha = Math.max(0, elemFade * textFade);
+          ctx.fillStyle   = '#FFFF00';
+          ctx.font        = 'bold 22px monospace';
+          ctx.textAlign   = 'center';
+          ctx.shadowBlur  = 10;
+          ctx.shadowColor = '#FF8800';
+          ctx.fillText('1UP', cx, floatY);
+          ctx.shadowBlur  = 0;
+          ctx.textAlign   = 'left';
+        }
+      },
+    };
+    addEffect(konamiFx);
   }
 
   // ── Timeline math ────────────────────────────────────────────
