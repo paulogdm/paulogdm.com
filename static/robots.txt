@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
 
+# Structured info for LLM/agent crawlers
+# https://paulogdm.com/agents.md
+
 Sitemap: https://paulogdm.com/sitemap.xml
