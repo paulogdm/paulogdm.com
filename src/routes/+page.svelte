@@ -143,6 +143,7 @@
   let fxCtx       = null;
   let fxRaf       = 0;
   let fxResizeRaf = 0;
+  let fxPausedAt  = 0; // performance.now() when the tab was hidden; 0 = running
   let fxW         = 0;
   let fxH         = 0;
   const effects = []; // active effects: { startedAt, duration, render, onEnd?, onResize? }
@@ -171,6 +172,23 @@
     });
   }
 
+  // 9: effects measure progress as (now - startedAt) on the wall clock. While a
+  // tab is hidden, rAF stops firing but the clock keeps running — so on return
+  // an effect would jump ahead (or have silently expired). Pause by cancelling
+  // the loop on hide, and on show shift every startedAt forward by the hidden
+  // duration so accumulated elapsed is preserved and playback resumes in place.
+  function onVisibility() {
+    if (document.hidden) {
+      if (fxRaf) { cancelAnimationFrame(fxRaf); fxRaf = 0; }
+      fxPausedAt = performance.now();
+    } else if (fxPausedAt) {
+      const hiddenFor = performance.now() - fxPausedAt;
+      fxPausedAt = 0;
+      for (const fx of effects) fx.startedAt += hiddenFor;
+      if (effects.length && !fxRaf) fxRaf = requestAnimationFrame(fxTick);
+    }
+  }
+
   function ensureCanvas() {
     if (fxCanvas) return;
     fxCanvas = document.createElement('canvas');
@@ -179,6 +197,7 @@
     document.body.appendChild(fxCanvas);
     fxResize();
     window.addEventListener('resize', scheduleResize);
+    document.addEventListener('visibilitychange', onVisibility);
   }
 
   function stopRenderer() {
@@ -186,9 +205,11 @@
     if (fxResizeRaf) cancelAnimationFrame(fxResizeRaf);
     fxRaf = 0;
     fxResizeRaf = 0;
+    fxPausedAt = 0;
     effects.length = 0;
     if (fxCanvas) {
       window.removeEventListener('resize', scheduleResize);
+      document.removeEventListener('visibilitychange', onVisibility);
       fxCanvas.remove();
       fxCanvas = null;
       fxCtx = null;
