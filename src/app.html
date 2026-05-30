@@ -11,17 +11,12 @@
   <link rel="icon" href="/assets/favicon-62.png" sizes="62x62" type="image/png">
   <link rel="apple-touch-icon" href="/assets/favicon-192.png" sizes="192x192">
 
-  <!-- Preload the two dominant above-the-fold faces (Inter body, Syne hero h1)
-       so they're fetched in parallel with fonts.css instead of after it. Geist
-       (the small "Vercel" label) is left to load normally. crossorigin is
-       required for font preloads even when same-origin. -->
   <link rel="preload" href="/vendor/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/vendor/fonts/syne-latin-400.woff2" as="font" type="font/woff2" crossorigin>
 
 <link rel="stylesheet" href="/styles.css">
   <link rel="stylesheet" href="/vendor/fonts.css">
 
-  <!-- Blocking theme script: reads cookie before first paint to prevent FOUC -->
   <script>
     (function () {
       var m = document.cookie.match(/(^| )lights=([^;]+)/);
