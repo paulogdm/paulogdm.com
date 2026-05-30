@@ -65,12 +65,27 @@
   );
   // ── End photo drag resistance ─────────────────────────────────────────────
 
+  // Cross-tab theme sync. Cookies are already shared across same-origin tabs,
+  // so a toggle in one tab leaves the cookie correct everywhere — the channel
+  // just nudges the other tabs to re-render. The sender never receives its own
+  // message, so applyTheme() here can't loop.
+  let themeChannel = null;
+
+  // Single code path for "make the UI reflect `dark`": document classes (which
+  // the canvas renderer reads live) + reactive state (the toggle icon).
+  function applyTheme(dark) {
+    lights = dark;
+    document.documentElement.classList.toggle('theme-dark', dark);
+    document.documentElement.classList.toggle('theme-light', !dark);
+  }
+
   function changeBackground() {
-    lights = !lights;
-    document.documentElement.classList.toggle('theme-dark', lights);
-    document.documentElement.classList.toggle('theme-light', !lights);
+    applyTheme(!lights);
     // SameSite=Lax: this is a first-party preference cookie, never sent cross-site.
     document.cookie = `lights=${lights ? 'on' : 'off'}; path=/; max-age=31536000; SameSite=Lax`;
+    // Notify other tabs/windows; they apply the class + state without re-writing
+    // the cookie or re-broadcasting.
+    themeChannel?.postMessage(lights);
   }
 
   onMount(() => {
@@ -80,6 +95,10 @@
     // system preference) and applied the class before first paint. Sync our
     // reactive state from that single source of truth rather than re-deriving it.
     lights = document.documentElement.classList.contains('theme-dark');
+
+    // Subscribe to theme toggles from other tabs/windows of this origin.
+    themeChannel = new BroadcastChannel('theme');
+    themeChannel.onmessage = (e) => applyTheme(e.data);
 
     let keyBuf = '';
     const KONAMI_SEQ = ['arrowup','arrowup','arrowdown','arrowdown','arrowleft','arrowright','arrowleft','arrowright','b','a'];
@@ -121,6 +140,8 @@
 
     return () => {
       window.removeEventListener('keydown', onKey);
+      themeChannel?.close();
+      themeChannel = null;
       stopRenderer(); // tear down canvas / RAF / resize listener on unmount
     };
   });
