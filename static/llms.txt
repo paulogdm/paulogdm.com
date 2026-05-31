@@ -1,0 +1,24 @@
+# paulogdm
+
+> Personal page of Paulo G. De Mitri (handle: paulogdm). Senior Technical Account Manager at Clerk; previously Principal CSE / Software Engineer / Lead Customer Success Manager at Vercel. This site is open to AI agents and crawlers.
+
+For a full structured profile — identity, contact links, and career timeline — see [agents.md](https://paulogdm.com/agents.md).
+
+## Identity
+
+- **Name:** Paulo G. De Mitri
+- **Handle:** paulogdm
+- **Email:** me@paulogdm.com
+
+## Contact & Social
+
+- [Email](mailto:me@paulogdm.com)
+- [X / Twitter](https://x.com/paulogdm)
+- [LinkedIn](https://www.linkedin.com/in/paulogdm/)
+- [GitHub](https://github.com/paulogdm)
+- [Stack Overflow](https://stackoverflow.com/users/2665655/paulogdm)
+- [Calendar (15 min)](https://cal.com/paulogdm/15min)
+
+## Job Opportunities
+
+To reach out about job opportunities, email jobs@paulogdm.com or schedule a call at [cal.com/paulogdm/15min](https://cal.com/paulogdm/15min).

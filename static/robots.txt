@@ -3,5 +3,6 @@ Allow: /
 
 # Structured info for LLM/agent crawlers
 # https://paulogdm.com/agents.md
+# https://paulogdm.com/llms.txt
 
 Sitemap: https://paulogdm.com/sitemap.xml
