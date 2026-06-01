@@ -90,12 +90,20 @@ a:hover {
 .mx-2 { margin-left: 0.5rem; margin-right: 0.5rem; }
 
 /* ── Animations (replaces animate.css) ──────────────────────── */
+/* Fade + subtle slide-up. Entrances pair opacity with a small translate so
+   they read as intentional rather than a flat dissolve. */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0);   }
 }
 
-.animated { animation-duration: 1s; animation-fill-mode: both; }
+/* ease-out (fast in, settle out) is the right curve for content arriving on
+   load; shorter than the old 1s since these fire early and often. */
+.animated {
+  animation-duration: 0.55s;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  animation-fill-mode: both;
+}
 .fadeIn   { animation-name: fadeIn; }
 
 /* ── Theme toggle button ────────────────────────────────────── */
@@ -401,5 +409,17 @@ a:hover {
   .tl-spark::before,
   .tl-spark::after {
     animation: none;
+  }
+
+  /* State changes still happen (hover reveals, theme recolour) — but instantly,
+     with no traversal. Covers the tenure-badge slide, company cross-fades,
+     timeline segment, "now" marker, and the profile-shadow grow. */
+  .tl-company,
+  .tl-company::after,
+  .tl-labels:has(.tl-company:hover) .tl-company:not(:hover),
+  .tl-vercel-seg,
+  .tl-yr-now,
+  .me-size::after {
+    transition: none !important;
   }
 }
