@@ -196,12 +196,15 @@ a:hover {
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
-.tl-company:hover::after {
+.tl-company:hover::after,
+.tl-company--lit::after {
   opacity: 1;
   transform: translateY(-50%) translateX(0);
 }
 
-/* Brand wave highlight — applied via JS while the wave is alive */
+/* Brand wave highlight — applied via JS while the wave is alive. It mirrors the
+   hover state (tenure badge, recolour, cross-fade, timeline cue) for as long as
+   the wave lives, so a Clerk/Vercel wave reveals the same detail as a hover. */
 .tl-company--lit {
   color: var(--accent) !important;
 }
@@ -211,16 +214,19 @@ a:hover {
   transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
               color   0.6s ease;
 }
-.tl-labels:has(.tl-company:hover) .tl-company:not(:hover) {
+.tl-labels:has(.tl-company:hover) .tl-company:not(:hover),
+.tl-labels:has(.tl-company--lit) .tl-company:not(.tl-company--lit) {
   opacity: 0;
   transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Highlight the relevant timeline piece on hover */
-.tl-labels:has(.tl-vercel:hover) ~ .tl-track .tl-vercel-seg {
+/* Highlight the relevant timeline piece on hover (or while a brand wave is lit) */
+.tl-labels:has(.tl-vercel:hover) ~ .tl-track .tl-vercel-seg,
+.tl-labels:has(.tl-vercel.tl-company--lit) ~ .tl-track .tl-vercel-seg {
   opacity: 1;
 }
-.tl-labels:has(.tl-clerk:hover) ~ .tl-track .tl-spark {
+.tl-labels:has(.tl-clerk:hover) ~ .tl-track .tl-spark,
+.tl-labels:has(.tl-clerk.tl-company--lit) ~ .tl-track .tl-spark {
   box-shadow: 0 0 8px 3px var(--accent), 0 0 22px 10px var(--accent-glow);
 }
 
@@ -322,7 +328,8 @@ a:hover {
   transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.tl-labels:has(.tl-clerk:hover) ~ .tl-years .tl-yr-now {
+.tl-labels:has(.tl-clerk:hover) ~ .tl-years .tl-yr-now,
+.tl-labels:has(.tl-clerk.tl-company--lit) ~ .tl-years .tl-yr-now {
   opacity: 1;
 }
 
