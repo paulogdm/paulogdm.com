@@ -368,6 +368,15 @@
                       : null;
     if (highlightEl) highlightEl.classList.add('tl-company--lit');
 
+    // Brand waves emanate from the company's logo on the timeline rather than the
+    // "now" spark, so the ripple visibly originates at the Vercel ▲ / Clerk ◐ mark.
+    const brandSvg = highlightEl?.querySelector('svg');
+    if (brandSvg) {
+      const r = brandSvg.getBoundingClientRect();
+      cx = r.left + r.width  / 2;
+      cy = r.top  + r.height / 2;
+    }
+
     let sources      = buildSources(cx, cy, fxW, fxH, SPEED);
     let rainbowGrads = variant === 'rainbow' ? buildRainbowGrads(fxCtx, sources) : null;
 
@@ -496,6 +505,24 @@
         continue;
       }
 
+      if (variant === 'clerk') {
+        if (bornAt !== 0) continue;  // single expanding circle, no reflections
+        // Clerk's mark is monochrome (black/grey/white), so the wave borrows the
+        // vercel colours: white ring on dark, black on light. Read the theme live
+        // so a mid-wave toggle recolours correctly (same approach as vercel/mono).
+        const rgb = document.documentElement.classList.contains('theme-dark') ? '255,255,255' : '0,0,0';
+        ctx.beginPath();
+        ctx.arc(sx, sy, r, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(${rgb},${alpha.toFixed(3)})`;
+        ctx.lineWidth   = 2;
+        ctx.shadowBlur  = 20;
+        ctx.shadowColor = `rgba(${rgb},${(alpha * 0.6).toFixed(3)})`;
+        ctx.stroke();
+        ctx.shadowBlur  = 0;
+        ctx.shadowColor = 'transparent';
+        continue;
+      }
+
       if (variant === 'ghost') {
         // Three-pass layered glow: wide bloom → mid halo → bright core.
         // 11: blur radii capped (was 48/22/8) — large shadowBlur is the most
@@ -533,10 +560,6 @@
         color     = `rgba(255,210,0,${alpha.toFixed(3)})`;
         lineWidth = 2;
         ctx.shadowBlur = 14; ctx.shadowColor = `rgba(255,210,0,${(alpha * 0.7).toFixed(3)})`;
-      } else if (variant === 'clerk') {
-        color     = `rgba(108,71,255,${alpha.toFixed(3)})`;
-        lineWidth = 2;
-        ctx.shadowBlur = 14; ctx.shadowColor = `rgba(108,71,255,${(alpha * 0.7).toFixed(3)})`;
       } else {
         color     = `rgba(255,102,0,${alpha.toFixed(3)})`; // default
         lineWidth = 1;
