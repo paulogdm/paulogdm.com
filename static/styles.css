@@ -56,6 +56,69 @@ h1 {
   line-height: 1.7em;
 }
 
+/* ── Role ticker (rolling subtitle under the name) ──────────── */
+.role-ticker {
+  /* flex (not the default block) so the paragraph hugs the slot's real height
+     instead of inheriting a tall inline line-box, which otherwise pushes the
+     role down, away from the name. */
+  display: flex;
+  justify-content: center;
+  /* Sit tight under the name as its subtitle: the h1 carries a 0.5rem bottom
+     margin, and this negative top collapses against it to leave a ~0.25rem gap
+     above, while the nav's 1rem top margin keeps a clearly larger gap below
+     (closer to the name, not the icons). */
+  margin: -0.25rem 0 0;
+  font-size: 1.1rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: color-mix(in srgb, currentColor 70%, transparent);
+}
+
+/* Fixed-width window: a hidden sizer holds every role, so the box is always as
+   wide as the longest one. Roles then roll vertically in place and never shift
+   horizontally as their length changes. overflow clips the vertical travel. */
+.role-ticker__slot {
+  display: inline-grid;
+  justify-items: center;
+  height: 1.5em;
+  line-height: 1.5;
+  overflow: hidden;
+}
+
+/* The sizer claims the column width (the widest role) without adding height;
+   every animated role shares its cell and stays centered in that constant box. */
+.role-ticker__sizer {
+  grid-area: 1 / 1;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
+}
+.role-ticker__sizer span {
+  display: block;
+  white-space: nowrap;
+}
+
+/* Incoming + outgoing share the cell so they cross-fade in place. */
+.role-ticker__role {
+  grid-area: 1 / 1;
+  white-space: nowrap;
+  will-change: opacity;
+}
+
+/* Visually hidden, still read by screen readers (the full role list). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
 a {
   text-decoration: none;
   transition: color 0.3s ease;

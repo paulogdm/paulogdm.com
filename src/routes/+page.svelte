@@ -1,5 +1,6 @@
 <script>
   import { onMount } from 'svelte';
+  import { fade } from 'svelte/transition';
   import Icon from '@iconify/svelte';
   import sunIcon           from '@iconify-icons/lucide/sun';
   import moonIcon          from '@iconify-icons/lucide/moon';
@@ -21,6 +22,49 @@
     return typeof window !== 'undefined'
       && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
+
+  // ── Role ticker ───────────────────────────────────────────────────────────
+  // The subtitle under "paulogdm" rolls through the many hats I wear, in random
+  // order. Add, remove, or reorder these freely — the ticker shuffles them and
+  // never shows the same role twice in a row. Keep each short enough to sit on
+  // one line on mobile.
+  const ROLES = [
+    'Dev',
+    'Technical Account Manager',
+    'Technical CSM',
+    'Solutions Engineer',
+    'GTM Engineer',
+    'Software Engineer',
+    'Agent Whisper',
+    'Hardware + Software Hobbyist',
+    'Success Engineer',
+    'Customer-1st Engineer',
+  ];
+  const ROLE_DWELL     = 2600; // ms a role rests before the next one rolls in
+  const ROLE_NO_REPEAT = 3;    // the next role avoids the last N shown
+
+  let roleIndex   = $state(0); // 0 = 'Dev' — always the first role shown on load
+  let role        = $derived(ROLES[roleIndex]);
+  let recentRoles = [0];       // sliding window of the last few shown indices
+
+  // Advance to a random role that isn't one of the last ROLE_NO_REPEAT shown, so
+  // the rotation never doubles back on something just seen. Skipped while the tab
+  // is hidden: rAF (and so the roll) is paused there, and minting new roles would
+  // just pile up off-screen — same reason the canvas renderer pauses on hide.
+  function rollToNextRole() {
+    if (ROLES.length < 2 || document.hidden) return;
+    // Block at most ROLES.length - 1 recents so a candidate always remains.
+    const blockCount = Math.min(ROLE_NO_REPEAT, ROLES.length - 1);
+    const blocked    = new Set(recentRoles.slice(-blockCount));
+    const candidates = ROLES.flatMap((_, i) => (blocked.has(i) ? [] : [i]));
+    roleIndex   = candidates[Math.floor(Math.random() * candidates.length)];
+    recentRoles = [...recentRoles, roleIndex].slice(-ROLE_NO_REPEAT);
+  }
+
+  // Cross-fade timing: the outgoing role fades out, then the incoming one fades
+  // in (the in: delay matches the out: duration, so they don't overlap/ghost).
+  const FADE_OUT = 250;
+  const FADE_IN  = 320;
 
   // ── Photo drag resistance ────────────────────────────────────────────────────
   let isDragging  = $state(false);
@@ -138,8 +182,17 @@
     }
     window.addEventListener('keydown', onKey);
 
+    // Roll the role subtitle on a timer. The first role (ROLES[0]) fades in with
+    // the name; the timer then rolls through the rest at random. Reduced-motion
+    // users keep that single static role and no cycling.
+    let roleTimer = 0;
+    if (!prefersReducedMotion()) {
+      roleTimer = setInterval(rollToNextRole, ROLE_DWELL);
+    }
+
     return () => {
       window.removeEventListener('keydown', onKey);
+      clearInterval(roleTimer);
       themeChannel?.close();
       themeChannel = null;
       stopRenderer(); // tear down canvas / RAF / resize listener on unmount
@@ -853,6 +906,19 @@
 
     <div class="my-5 py-2 animated fadeIn" style="animation-delay: 0.25s">
       <h1>paulogdm</h1>
+
+      <p class="role-ticker">
+        <span class="sr-only">{ROLES.join(', ')}</span>
+        <span class="role-ticker__slot" aria-hidden="true">
+          <span class="role-ticker__sizer">
+            {#each ROLES as r}<span>{r}</span>{/each}
+          </span>
+          {#key role}
+            <span class="role-ticker__role" in:fade={{ duration: FADE_IN, delay: FADE_OUT }} out:fade={{ duration: FADE_OUT }}>{role}</span>
+          {/key}
+        </span>
+      </p>
+
       <nav class="social-links mt-3" aria-label="Social media and contact links">
         <a class="mx-2" href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#109;&#101;&#64;&#112;&#97;&#117;&#108;&#111;&#103;&#100;&#109;&#46;&#99;&#111;&#109;" aria-label="Email">
           <Icon icon={mailIcon} width="1.33em" />
