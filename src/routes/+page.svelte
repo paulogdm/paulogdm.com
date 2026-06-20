@@ -56,7 +56,7 @@
   // enough for the longest of either list and never resizes between roles.
   const ALL_ROLES = [...ROLES, ...PERSONAL_ROLES];
 
-  const ROLE_DWELL = 2600; // ms a role rests before the next one fades in
+  const ROLE_DWELL = 8000; // ms a role rests before the next one fades in
   const ROLE_NO_REPEAT = 3; // professional roles: avoid the last N shown
   const PERSONAL_CHANCE = 0.12; // ~1 in 8 eligible cycles picks a personal role
   const PERSONAL_COOLDOWN = 30000; // ms before another personal role may appear
