@@ -1,5 +1,5 @@
 <script>
-  import ErrorScreen from '$lib/ErrorScreen.svelte';
+  import ErrorScreen from "$lib/ErrorScreen.svelte";
 </script>
 
 <svelte:head>

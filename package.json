@@ -5,17 +5,23 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
-    "preview": "vite preview"
-  },
-  "devDependencies": {
-    "@sveltejs/adapter-static": "^3.0.0",
-    "@sveltejs/kit": "^2.0.0",
-    "svelte": "^5.0.0",
-    "vite": "^8.0.0"
+    "preview": "vite preview",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check"
   },
   "dependencies": {
     "@iconify-icons/lucide": "^1.2.135",
     "@iconify-icons/simple-icons": "^1.2.74",
     "@iconify/svelte": "^5.2.1"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-static": "^3.0.0",
+    "@sveltejs/kit": "^2.0.0",
+    "oxfmt": "^0.55.0",
+    "oxlint": "^1.70.0",
+    "svelte": "^5.0.0",
+    "vite": "^8.0.0"
   }
 }

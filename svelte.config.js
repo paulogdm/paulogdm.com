@@ -1,12 +1,12 @@
-import adapter from '@sveltejs/adapter-static';
+import adapter from "@sveltejs/adapter-static";
 
 export default {
   kit: {
     adapter: adapter({
-      pages: 'build',
-      assets: 'build',
+      pages: "build",
+      assets: "build",
       fallback: null,
-      strict: true
-    })
-  }
+      strict: true,
+    }),
+  },
 };
