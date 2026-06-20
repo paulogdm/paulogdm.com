@@ -37,7 +37,7 @@
     "GTM Engineer",
     "Software Engineer",
     "Forward Deployed Engineer",
-    "Success Engineer",
+    "Customer Success Engineer",
     "Customer-1st Engineer",
     "Solutions Engineer",
   ];
