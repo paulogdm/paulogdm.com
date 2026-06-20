@@ -780,6 +780,28 @@
     left:  tlPct(new Date(y, 0, 1)),
   }));
 
+  // schema.org Person — lets search engines render paulogdm as an entity and
+  // ties the social links together via sameAs. Emitted as a raw <script> in
+  // <svelte:head> through {@html} (a literal <script> tag there is captured by
+  // the compiler as a component script instead of being rendered as markup).
+  const personJsonLd = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: 'Paulo G. De Mitri',
+    alternateName: 'paulogdm',
+    url: 'https://paulogdm.com',
+    image: 'https://paulogdm.com/assets/me.jpg',
+    jobTitle: 'Sr. Technical Account Manager',
+    worksFor: { '@type': 'Organization', name: 'Clerk', url: 'https://clerk.com' },
+    email: 'mailto:me@paulogdm.com',
+    sameAs: [
+      'https://x.com/paulogdm',
+      'https://www.linkedin.com/in/paulogdm/',
+      'https://github.com/paulogdm',
+      'https://stackoverflow.com/users/2665655/paulogdm',
+    ],
+  });
+
 </script>
 
 <svelte:head>
@@ -793,6 +815,7 @@
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:site" content="@paulogdm" />
+  {@html `<script type="application/ld+json">${personJsonLd}</script>`}
 </svelte:head>
 
 <div class="container">
@@ -819,8 +842,7 @@
         width="500"
         height="500"
         draggable="false"
-        fetchpriority="low"
-        decoding="async"
+        fetchpriority="high"
         style={photoStyle}
         onpointerdown={onPhotoDragStart}
         onpointermove={onPhotoMove}
@@ -832,7 +854,7 @@
     <div class="my-5 py-2 animated fadeIn" style="animation-delay: 0.25s">
       <h1>paulogdm</h1>
       <nav class="social-links mt-3" aria-label="Social media and contact links">
-        <a class="mx-2" href="&#77;&#97;&#73;&#76;&#84;&#79;&#58;&#109;&#101;&#64;&#112;&#97;&#117;&#108;&#111;&#103;&#100;&#109;&#46;&#99;&#111;&#109;" target="_blank" rel="noopener noreferrer" aria-label="Email">
+        <a class="mx-2" href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#109;&#101;&#64;&#112;&#97;&#117;&#108;&#111;&#103;&#100;&#109;&#46;&#99;&#111;&#109;" aria-label="Email">
           <Icon icon={mailIcon} width="1.33em" />
         </a>
         <a class="mx-2" href="https://x.com/paulogdm" target="_blank" rel="noopener noreferrer" aria-label="X">
