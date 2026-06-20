@@ -39,6 +39,7 @@
     "Forward Deployed Engineer",
     "Success Engineer",
     "Customer-1st Engineer",
+    "Solutions Engineer",
   ];
 
   // Personal roles — shown rarely and never two within PERSONAL_COOLDOWN of each
