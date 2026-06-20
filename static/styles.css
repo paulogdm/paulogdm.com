@@ -63,11 +63,11 @@ h1 {
      role down, away from the name. */
   display: flex;
   justify-content: center;
-  /* Sit tight under the name as its subtitle: the h1 carries a 0.5rem bottom
-     margin, and this negative top collapses against it to leave a ~0.25rem gap
-     above, while the nav's 1rem top margin keeps a clearly larger gap below
-     (closer to the name, not the icons). */
-  margin: -0.25rem 0 0;
+  /* Bonded to the name as its subtitle, with a clearly larger gap below so the
+     eye groups [name + role] then the icons. Top: negative, collapsing against
+     the h1's 0.5rem bottom margin to ~0.25rem. Bottom: 1.5rem to the icons (the
+     nav's own top margin is 0), an existing step on the page's spacing scale. */
+  margin: -0.25rem 0 1.5rem;
   font-size: 1.1rem;
   font-weight: 500;
   letter-spacing: 0.01em;

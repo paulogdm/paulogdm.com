@@ -24,9 +24,9 @@
   }
 
   // ── Role ticker ───────────────────────────────────────────────────────────
-  // The subtitle under "paulogdm" rolls through the many hats I wear, in random
-  // order. Add, remove, or reorder these freely — the ticker shuffles them and
-  // never shows the same role twice in a row. Keep each short enough to sit on
+  // The subtitle under "paulogdm" cross-fades through the many hats I wear, in
+  // random order. Add, remove, or reorder these freely — the ticker shuffles
+  // them and never repeats one of the last few. Keep each short enough to sit on
   // one line on mobile.
   const ROLES = [
     'Dev',
@@ -40,25 +40,56 @@
     'Success Engineer',
     'Customer-1st Engineer',
   ];
-  const ROLE_DWELL     = 2600; // ms a role rests before the next one rolls in
-  const ROLE_NO_REPEAT = 3;    // the next role avoids the last N shown
 
-  let roleIndex   = $state(0); // 0 = 'Dev' — always the first role shown on load
-  let role        = $derived(ROLES[roleIndex]);
-  let recentRoles = [0];       // sliding window of the last few shown indices
+  // Personal roles — shown rarely and never two within PERSONAL_COOLDOWN of each
+  // other, so they read as the occasional wink rather than part of the rotation.
+  const PERSONAL_ROLES = [
+    '🚗 Car Fan',
+    '✌️ Chill Guy',
+    '🗺️ Traveller',
+    '🛍️ Professional Shopper',
+  ];
 
-  // Advance to a random role that isn't one of the last ROLE_NO_REPEAT shown, so
-  // the rotation never doubles back on something just seen. Skipped while the tab
-  // is hidden: rAF (and so the roll) is paused there, and minting new roles would
-  // just pile up off-screen — same reason the canvas renderer pauses on hide.
-  function rollToNextRole() {
-    if (ROLES.length < 2 || document.hidden) return;
-    // Block at most ROLES.length - 1 recents so a candidate always remains.
+  // Every possible role — used only to size the slot, so the visible box is wide
+  // enough for the longest of either list and never resizes between roles.
+  const ALL_ROLES = [...ROLES, ...PERSONAL_ROLES];
+
+  const ROLE_DWELL        = 2600;  // ms a role rests before the next one fades in
+  const ROLE_NO_REPEAT    = 3;     // professional roles: avoid the last N shown
+  const PERSONAL_CHANCE   = 0.12;  // ~1 in 8 eligible cycles picks a personal role
+  const PERSONAL_COOLDOWN = 30000; // ms before another personal role may appear
+
+  let role           = $state(ROLES[0]);   // 'Dev' — always shown first on load
+  let recentPro      = [ROLES[0]];         // sliding window of recent professional roles
+  let lastPersonal   = '';                 // last personal role (avoid back-to-back)
+  let lastPersonalAt = -PERSONAL_COOLDOWN; // so a personal role is eligible from the start
+
+  // Pick a professional role that isn't one of the last ROLE_NO_REPEAT shown.
+  function pickProfessional() {
     const blockCount = Math.min(ROLE_NO_REPEAT, ROLES.length - 1);
-    const blocked    = new Set(recentRoles.slice(-blockCount));
-    const candidates = ROLES.flatMap((_, i) => (blocked.has(i) ? [] : [i]));
-    roleIndex   = candidates[Math.floor(Math.random() * candidates.length)];
-    recentRoles = [...recentRoles, roleIndex].slice(-ROLE_NO_REPEAT);
+    const blocked    = new Set(recentPro.slice(-blockCount));
+    const candidates = ROLES.filter((r) => !blocked.has(r));
+    const next       = candidates[Math.floor(Math.random() * candidates.length)];
+    recentPro = [...recentPro, next].slice(-ROLE_NO_REPEAT);
+    return next;
+  }
+
+  // Advance the subtitle. Mostly professional roles; occasionally — and at most
+  // once per PERSONAL_COOLDOWN — a personal one slips in. Skipped while the tab
+  // is hidden: rAF (and the fade) is paused there, so a queued change would just
+  // pile up off-screen — same reason the canvas renderer pauses on hide.
+  function rollToNextRole() {
+    if (document.hidden) return;
+    const now    = performance.now();
+    const cooled = now - lastPersonalAt >= PERSONAL_COOLDOWN;
+    if (cooled && Math.random() < PERSONAL_CHANCE) {
+      const pool = PERSONAL_ROLES.filter((r) => r !== lastPersonal);
+      role           = pool[Math.floor(Math.random() * pool.length)];
+      lastPersonal   = role;
+      lastPersonalAt = now;
+    } else {
+      role = pickProfessional();
+    }
   }
 
   // Cross-fade timing: the outgoing role fades out, then the incoming one fades
@@ -908,10 +939,10 @@
       <h1>paulogdm</h1>
 
       <p class="role-ticker">
-        <span class="sr-only">{ROLES.join(', ')}</span>
+        <span class="sr-only">{ALL_ROLES.join(', ')}</span>
         <span class="role-ticker__slot" aria-hidden="true">
           <span class="role-ticker__sizer">
-            {#each ROLES as r}<span>{r}</span>{/each}
+            {#each ALL_ROLES as r}<span>{r}</span>{/each}
           </span>
           {#key role}
             <span class="role-ticker__role" in:fade={{ duration: FADE_IN, delay: FADE_OUT }} out:fade={{ duration: FADE_OUT }}>{role}</span>
@@ -919,7 +950,7 @@
         </span>
       </p>
 
-      <nav class="social-links mt-3" aria-label="Social media and contact links">
+      <nav class="social-links" aria-label="Social media and contact links">
         <a class="mx-2" href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#109;&#101;&#64;&#112;&#97;&#117;&#108;&#111;&#103;&#100;&#109;&#46;&#99;&#111;&#109;" aria-label="Email">
           <Icon icon={mailIcon} width="1.33em" />
         </a>
