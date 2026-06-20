@@ -1,25 +1,27 @@
 /* ── Reset / base ───────────────────────────────────────────── */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
 /* ── Design tokens ──────────────────────────────────────────── */
 :root {
-  --accent:      #FF6600;
+  --accent: #ff6600;
   --accent-glow: rgba(255, 102, 0, 0.25);
-  --accent-sun:  #FFD200;
-  --accent-moon: #0070F3;
+  --accent-sun: #ffd200;
+  --accent-moon: #0070f3;
 }
 
 html.theme-dark {
-  --bg:           #000000;
-  --text:         #FFFFFF;
+  --bg: #000000;
+  --text: #ffffff;
   --shadow-color: rgba(255, 255, 255, 0.65);
 }
 
 html.theme-light {
-  --bg:           #FFFFFF;
-  --text:         #000000;
+  --bg: #ffffff;
+  --text: #000000;
   --shadow-color: rgba(0, 0, 0, 0.4);
 }
 
@@ -31,16 +33,18 @@ html {
 
 body {
   margin: 0;
-  font-family: 'Inter Variable', sans-serif;
+  font-family: "Inter Variable", sans-serif;
   font-size: 1rem;
   line-height: 1.5;
   background-color: var(--bg);
   color: var(--text);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 h1 {
-  font-family: 'Syne', sans-serif;
+  font-family: "Syne", sans-serif;
   font-size: 2.5rem;
   font-weight: 400;
   margin-top: 0;
@@ -139,25 +143,60 @@ a:hover {
   padding-right: 1rem;
 }
 
-.d-block     { display: block; }
-.text-center { text-align: center; }
-.mx-auto     { margin-left: auto; margin-right: auto; }
+.d-block {
+  display: block;
+}
+.text-center {
+  text-align: center;
+}
+.mx-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
 
-.p-2  { padding: 0.5rem; }
-.px-4 { padding-left: 1.5rem; padding-right: 1.5rem; }
-.py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
-.py-4 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
-.mt-3 { margin-top: 1rem; }
-.my-4 { margin-top: 1.5rem; margin-bottom: 1.5rem; }
-.my-5 { margin-top: 3rem; margin-bottom: 3rem; }
-.mx-2 { margin-left: 0.5rem; margin-right: 0.5rem; }
+.p-2 {
+  padding: 0.5rem;
+}
+.px-4 {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+.py-2 {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+.py-4 {
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+}
+.mt-3 {
+  margin-top: 1rem;
+}
+.my-4 {
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.my-5 {
+  margin-top: 3rem;
+  margin-bottom: 3rem;
+}
+.mx-2 {
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+}
 
 /* ── Animations (replaces animate.css) ──────────────────────── */
 /* Fade + subtle slide-up. Entrances pair opacity with a small translate so
    they read as intentional rather than a flat dissolve. */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0);   }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ease-out (fast in, settle out) is the right curve for content arriving on
@@ -167,7 +206,9 @@ a:hover {
   animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   animation-fill-mode: both;
 }
-.fadeIn   { animation-name: fadeIn; }
+.fadeIn {
+  animation-name: fadeIn;
+}
 
 /* ── Theme toggle button ────────────────────────────────────── */
 .lightbulb {
@@ -187,13 +228,27 @@ a:hover {
 }
 
 /* Sun (dark mode) → yellow; Moon (light mode) → blue */
-.lightbulb.mode-dark:hover  { color: var(--accent-sun);  transition: color 0.2s ease; }
-.lightbulb.mode-light:hover { color: var(--accent-moon); transition: color 0.2s ease; }
+.lightbulb.mode-dark:hover {
+  color: var(--accent-sun);
+  transition: color 0.2s ease;
+}
+.lightbulb.mode-light:hover {
+  color: var(--accent-moon);
+  transition: color 0.2s ease;
+}
 
 /* ── Icon swap animation — triggered by {#key} remount ─────── */
 @keyframes icon-swap {
-  from { opacity: 0; filter: blur(6px); transform: scale(0.9); }
-  to   { opacity: 1; filter: blur(0);   transform: scale(1);   }
+  from {
+    opacity: 0;
+    filter: blur(6px);
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
 }
 .icon-swap {
   display: inline-flex;
@@ -236,11 +291,13 @@ a:hover {
   opacity: 0.85;
 }
 
-.tl-clerk  { left: 0; } /* Inter — Clerk's brand font */
+.tl-clerk {
+  left: 0;
+} /* Inter — Clerk's brand font */
 
 .tl-vercel {
   transform: translateX(-50%);
-  font-family: 'Geist', sans-serif; /* Geist — Vercel's brand font */
+  font-family: "Geist", sans-serif; /* Geist — Vercel's brand font */
 }
 
 /* Tenure badge — appears below each company label on hover */
@@ -256,7 +313,9 @@ a:hover {
   white-space: nowrap;
   color: var(--accent);
   pointer-events: none;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 
 .tl-company:hover::after,
@@ -274,8 +333,9 @@ a:hover {
 
 /* When any company is hovered, fade out the others */
 .tl-company {
-  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-              color   0.6s ease;
+  transition:
+    opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.6s ease;
 }
 .tl-labels:has(.tl-company:hover) .tl-company:not(:hover),
 .tl-labels:has(.tl-company--lit) .tl-company:not(.tl-company--lit) {
@@ -290,7 +350,9 @@ a:hover {
 }
 .tl-labels:has(.tl-clerk:hover) ~ .tl-track .tl-spark,
 .tl-labels:has(.tl-clerk.tl-company--lit) ~ .tl-track .tl-spark {
-  box-shadow: 0 0 8px 3px var(--accent), 0 0 22px 10px var(--accent-glow);
+  box-shadow:
+    0 0 8px 3px var(--accent),
+    0 0 22px 10px var(--accent-glow);
 }
 
 /* The track line */
@@ -306,14 +368,15 @@ a:hover {
   height: 100%;
   background: currentColor;
   opacity: 0.5;
-  transition: background 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity   0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    background 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Tick marks at segment endpoints */
 .tl-vercel-seg::before,
 .tl-vercel-seg::after {
-  content: '';
+  content: "";
   position: absolute;
   width: 1px;
   height: 0.5em;
@@ -322,9 +385,12 @@ a:hover {
   transform: translateY(-50%);
   opacity: 0.85;
 }
-.tl-vercel-seg::before { left: 0; }
-.tl-vercel-seg::after  { right: 0; }
-
+.tl-vercel-seg::before {
+  left: 0;
+}
+.tl-vercel-seg::after {
+  right: 0;
+}
 
 /* The "now" spark — small orange orb with double-halo */
 .tl-spark {
@@ -336,11 +402,15 @@ a:hover {
   height: 4px;
   border-radius: 50%;
   background: var(--accent);
-  box-shadow: 0 0 4px 1px var(--accent), 0 0 10px 3px var(--accent-glow);
+  box-shadow:
+    0 0 4px 1px var(--accent),
+    0 0 10px 3px var(--accent-glow);
   transition: box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.tl-spark:hover { cursor: pointer; }
+.tl-spark:hover {
+  cursor: pointer;
+}
 
 /* Sonar wave easter egg canvas */
 .sonar-canvas {
@@ -353,18 +423,26 @@ a:hover {
 /* Two expanding halos — inset: -1.5px starts them at the original 7px diameter */
 .tl-spark::before,
 .tl-spark::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: -1.5px;
   border-radius: 50%;
   background: var(--accent);
   animation: spark-halo 2.5s ease-out infinite;
 }
-.tl-spark::after { animation-delay: 1.25s; }
+.tl-spark::after {
+  animation-delay: 1.25s;
+}
 
 @keyframes spark-halo {
-  0%   { transform: scale(1);   opacity: 0.45; }
-  100% { transform: scale(3.5); opacity: 0; }
+  0% {
+    transform: scale(1);
+    opacity: 0.45;
+  }
+  100% {
+    transform: scale(3.5);
+    opacity: 0;
+  }
 }
 
 /* Year markers below the track */
@@ -409,12 +487,13 @@ a:hover {
 }
 
 .me-size::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -0.5em;
   /* Width-based sizing replaces scaleX() — avoids the Safari bug where
      filter:blur and transform interact incorrectly on the same element. */
-  left: 12%; right: 12%;
+  left: 12%;
+  right: 12%;
   height: 1.125em;
   border-radius: 50%;
   filter: blur(1.125em);
@@ -424,12 +503,16 @@ a:hover {
      blur to the element's own bounding box. */
   transform: translateZ(0);
   z-index: -1;
-  transition: opacity 0.5s ease, left 0.5s ease, right 0.5s ease;
+  transition:
+    opacity 0.5s ease,
+    left 0.5s ease,
+    right 0.5s ease;
 }
 
 .me-size:hover::after {
   opacity: 0.2;
-  left: 30%; right: 30%;
+  left: 30%;
+  right: 30%;
 }
 
 /* Shadow reacts when the photo is grabbed — shrinks like it's lifting.
@@ -440,7 +523,10 @@ a:hover {
   opacity: 0.12;
   left: 38%;
   right: 38%;
-  transition: opacity 0s, left 0s, right 0s;
+  transition:
+    opacity 0s,
+    left 0s,
+    right 0s;
 }
 
 .me-photo {
@@ -455,7 +541,7 @@ a:hover {
   /* LQIP: a ~1KB 24px blur of the photo, inlined (no extra request). Shows
      instantly and is covered once the full me.jpg paints over it. background-size
      cover + the matching border-radius keep it aligned with the round frame. */
-  background-image: url('data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QBARXhpZgAATU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAGKADAAQAAAABAAAAGAAAAAD/7QA4UGhvdG9zaG9wIDMuMAA4QklNBAQAAAAAAAA4QklNBCUAAAAAABDUHYzZjwCyBOmACZjs+EJ+/8AAEQgAGAAYAwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAABAgMEBQYHCAkKC//EALUQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+v/EAB8BAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKC//EALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYXETIjKBCBRCkaGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+jp6vLz9PX29/j5+v/bAEMABAQEBAQECAQECAsICAgLDwsLCwsPEg8PDw8PEhYSEhISEhIWFhYWFhYWFhsbGxsbGx8fHx8fIyMjIyMjIyMjI//bAEMBBQYGCQgJDwgIDyQZFBkkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJP/dAAQAAv/aAAwDAQACEQMRAD8A87j0sKm4jpVnXfh14l022j1qXU7cRSDPkrHuAyMqCx6n1ruIbWNMO4yq8n0x3qP4k6f4YtfJv9yGGaF3jVW+8zFWBPtjiuLGVJw5eV2PWwNGFTm51seApENR06K/C7S+cjtkEg4PpkVW+wV232W3i0uFbTBiKblK9MNzx+dZXle1di1SbPPkkm0j/9D5I1nXte1+Xz7u5cqR90EhQD2CjirOv+NvEPiTSrPR7mOJI7OFYdyj55Ng2gsx9scCsaL/AI9x/uj+VQp1P1NE4Rk02jKnVnFSSe5a0vxJqmjRrbBzLbg8xtyP+Ant/Ktz/hPov+fY/wDfX/1q4Wf/AFZ+v9KzqRabsf/Z');
+  background-image: url("data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QBARXhpZgAATU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAGKADAAQAAAABAAAAGAAAAAD/7QA4UGhvdG9zaG9wIDMuMAA4QklNBAQAAAAAAAA4QklNBCUAAAAAABDUHYzZjwCyBOmACZjs+EJ+/8AAEQgAGAAYAwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAABAgMEBQYHCAkKC//EALUQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+v/EAB8BAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKC//EALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYXETIjKBCBRCkaGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+jp6vLz9PX29/j5+v/bAEMABAQEBAQECAQECAsICAgLDwsLCwsPEg8PDw8PEhYSEhISEhIWFhYWFhYWFhsbGxsbGx8fHx8fIyMjIyMjIyMjI//bAEMBBQYGCQgJDwgIDyQZFBkkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJP/dAAQAAv/aAAwDAQACEQMRAD8A87j0sKm4jpVnXfh14l022j1qXU7cRSDPkrHuAyMqCx6n1ruIbWNMO4yq8n0x3qP4k6f4YtfJv9yGGaF3jVW+8zFWBPtjiuLGVJw5eV2PWwNGFTm51seApENR06K/C7S+cjtkEg4PpkVW+wV232W3i0uFbTBiKblK9MNzx+dZXle1di1SbPPkkm0j/9D5I1nXte1+Xz7u5cqR90EhQD2CjirOv+NvEPiTSrPR7mOJI7OFYdyj55Ng2gsx9scCsaL/AI9x/uj+VQp1P1NE4Rk02jKnVnFSSe5a0vxJqmjRrbBzLbg8xtyP+Ant/Ktz/hPov+fY/wDfX/1q4Wf/AFZ+v9KzqRabsf/Z");
   background-size: cover;
   background-position: center;
 }

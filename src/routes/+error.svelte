@@ -1,6 +1,6 @@
 <script>
-  import { page } from '$app/stores';
-  import ErrorScreen from '$lib/ErrorScreen.svelte';
+  import { page } from "$app/stores";
+  import ErrorScreen from "$lib/ErrorScreen.svelte";
 </script>
 
 <svelte:head>
@@ -8,4 +8,4 @@
   <meta name="robots" content="noindex" />
 </svelte:head>
 
-<ErrorScreen status={$page.status} message={$page.error?.message ?? ''} />
+<ErrorScreen status={$page.status} message={$page.error?.message ?? ""} />

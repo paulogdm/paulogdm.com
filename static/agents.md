@@ -10,14 +10,14 @@ Personal page of Paulo G. De Mitri (paulogdm).
 
 ## Contact & Social
 
-| Platform      | URL                                                              |
-|---------------|------------------------------------------------------------------|
-| Email         | me@paulogdm.com                                                  |
-| X / Twitter   | https://x.com/paulogdm                                           |
-| LinkedIn      | https://www.linkedin.com/in/paulogdm/                            |
-| GitHub        | https://github.com/paulogdm                                      |
-| Stack Overflow| https://stackoverflow.com/users/2665655/paulogdm                 |
-| Calendar      | https://cal.com/paulogdm/15min                                   |
+| Platform       | URL                                              |
+| -------------- | ------------------------------------------------ |
+| Email          | me@paulogdm.com                                  |
+| X / Twitter    | https://x.com/paulogdm                           |
+| LinkedIn       | https://www.linkedin.com/in/paulogdm/            |
+| GitHub         | https://github.com/paulogdm                      |
+| Stack Overflow | https://stackoverflow.com/users/2665655/paulogdm |
+| Calendar       | https://cal.com/paulogdm/15min                   |
 
 ## Career Timeline
 
