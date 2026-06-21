@@ -157,10 +157,10 @@
 
   // Theme recolor cascades top-down: nickname, then role title, then icons. The
   // per-tier transition-delays live behind .theme-anim (styles.css) so they apply
-  // only during a toggle and never lag hovers. Window = last tier's start (0.5s)
+  // only during a toggle and never lag hovers. Window = last tier's start (0.3s)
   // + its 1s fade, plus a small buffer.
   let themeAnimTimer = 0;
-  const THEME_ANIM_MS = 1600;
+  const THEME_ANIM_MS = 1400;
 
   // Single code path for "make the UI reflect `dark`": document classes (which
   // the canvas renderer reads live) + reactive state (the toggle icon).
