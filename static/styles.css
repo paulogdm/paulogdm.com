@@ -110,6 +110,30 @@ h1 {
   will-change: opacity;
 }
 
+/* Clerk mark next to the initial title — sized to the text (1em) and inheriting
+   its (muted) color via currentColor, mirroring the timeline's .tl-company svg. */
+.role-ticker__clerk-icon {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+  margin: 0 0.05em 0 0.2em;
+}
+
+/* Clerk link in the initial title. Sits inline with the muted title text, then
+   highlights in Clerk's brand purple on hover/focus — the icon follows via
+   currentColor. (The slot is aria-hidden; the link is mouse-only.) */
+.role-ticker__clerk {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.role-ticker__clerk:hover,
+.role-ticker__clerk:focus-visible {
+  color: #6c47ff; /* Clerk brand purple */
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
 /* Visually hidden, still read by screen readers (the full role list). */
 .sr-only {
   position: absolute;

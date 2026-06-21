@@ -61,8 +61,15 @@
   const PERSONAL_CHANCE = 0.12; // ~1 in 8 eligible cycles picks a personal role
   const PERSONAL_COOLDOWN = 30000; // ms before another personal role may appear
 
-  let role = $state(ROLES[0]); // 'Dev' — always shown first on load
-  let recentPro = [ROLES[0]]; // sliding window of recent professional roles
+  // The real, current title — shown first on load (with the Clerk mark beside it,
+  // sized to the text) and held for INITIAL_DWELL before the random rotation
+  // begins. Reduced-motion users keep it as their single static subtitle.
+  const INITIAL_ROLE_TEXT = "Sr. Technical Account Manager at Clerk";
+  const INITIAL_DWELL = 60000; // 1 min holding the initial title before rolling
+
+  let showingInitial = $state(true); // true until the initial title hands off to the rotation
+  let role = $state(ROLES[0]); // placeholder; the first roll overwrites it
+  let recentPro = []; // sliding window of recent professional roles
   let lastPersonal = ""; // last personal role (avoid back-to-back)
   let lastPersonalAt = -PERSONAL_COOLDOWN; // so a personal role is eligible from the start
 
@@ -230,16 +237,24 @@
     }
     window.addEventListener("keydown", onKey);
 
-    // Roll the role subtitle on a timer. The first role (ROLES[0]) fades in with
-    // the name; the timer then rolls through the rest at random. Reduced-motion
-    // users keep that single static role and no cycling.
+    // The initial title (INITIAL_ROLE_TEXT + Clerk mark) fades in with the name
+    // and holds for INITIAL_DWELL; only then do we hand off to the random
+    // rotation — the first roll fades in immediately, then the timer rolls
+    // through the rest. Reduced-motion users keep the static initial title and no
+    // cycling.
     let roleTimer = 0;
+    let initialTimer = 0;
     if (!prefersReducedMotion()) {
-      roleTimer = setInterval(rollToNextRole, ROLE_DWELL);
+      initialTimer = setTimeout(() => {
+        showingInitial = false;
+        rollToNextRole();
+        roleTimer = setInterval(rollToNextRole, ROLE_DWELL);
+      }, INITIAL_DWELL);
     }
 
     return () => {
       window.removeEventListener("keydown", onKey);
+      clearTimeout(initialTimer);
       clearInterval(roleTimer);
       themeChannel?.close();
       themeChannel = null;
@@ -1051,17 +1066,43 @@
     <div class="my-5 py-2 animated fadeIn" style="animation-delay: 0.25s">
       <h1>paulogdm</h1>
 
+      <!-- The Clerk mark: brand glyph (1em, follows the text) + word. Reused below. -->
+      {#snippet clerkMark()}<svg
+          class="role-ticker__clerk-icon"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+          ><path
+            d="m21.47 20.829-2.881-2.881a.572.572 0 0 0-.7-.084 6.854 6.854 0 0 1-7.081 0 .576.576 0 0 0-.7.084l-2.881 2.881a.576.576 0 0 0-.103.69.57.57 0 0 0 .166.186 12 12 0 0 0 14.113 0 .58.58 0 0 0 .239-.423.576.576 0 0 0-.172-.453Zm.002-17.668-2.88 2.88a.569.569 0 0 1-.701.084A6.857 6.857 0 0 0 8.724 8.08a6.862 6.862 0 0 0-1.222 3.692 6.86 6.86 0 0 0 .978 3.764.573.573 0 0 1-.083.699l-2.881 2.88a.567.567 0 0 1-.864-.063A11.993 11.993 0 0 1 6.771 2.7a11.99 11.99 0 0 1 14.637-.405.566.566 0 0 1 .232.418.57.57 0 0 1-.168.448Zm-7.118 12.261a3.427 3.427 0 1 0 0-6.854 3.427 3.427 0 0 0 0 6.854Z"
+          /></svg
+        >Clerk{/snippet}
+
+      <!-- The initial title. `linked` makes Clerk a link to clerk.com in the live
+           role; the sizer renders plain text (it only measures width). The slot is
+           aria-hidden, so the link is mouse-only (tabindex=-1) — the accessible
+           title is the sibling .sr-only text. -->
+      {#snippet clerkTitle(linked)}Sr. Technical Account Manager at {#if linked}<a
+            class="role-ticker__clerk"
+            href="https://clerk.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            tabindex="-1">{@render clerkMark()}</a
+          >{:else}{@render clerkMark()}{/if}{/snippet}
+
       <p class="role-ticker">
-        <span class="sr-only">{ALL_ROLES.join(", ")}</span>
+        <span class="sr-only">{[INITIAL_ROLE_TEXT, ...ALL_ROLES].join(", ")}</span>
         <span class="role-ticker__slot" aria-hidden="true">
           <span class="role-ticker__sizer">
+            <span>{@render clerkTitle(false)}</span>
             {#each ALL_ROLES as r}<span>{r}</span>{/each}
           </span>
-          {#key role}
+          {#key showingInitial ? "__initial__" : role}
             <span
               class="role-ticker__role"
               in:fade={{ duration: FADE_IN, delay: FADE_OUT }}
-              out:fade={{ duration: FADE_OUT }}>{role}</span
+              out:fade={{ duration: FADE_OUT }}
+              >{#if showingInitial}{@render clerkTitle(true)}{:else}{role}{/if}</span
             >
           {/key}
         </span>
