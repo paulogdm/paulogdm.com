@@ -75,7 +75,12 @@ h1 {
   font-size: 1.1rem;
   font-weight: 500;
   letter-spacing: 0.01em;
-  color: color-mix(in srgb, currentColor 70%, transparent);
+  /* Muted text, derived from the themed --text token (not currentColor, which
+     doesn't re-resolve here, leaving the role stuck at its load-time color when
+     the theme flips). Transition matches the nickname (h1) so the [name + role]
+     group fades together on toggle. */
+  color: color-mix(in srgb, var(--text) 70%, transparent);
+  transition: color 1s ease;
 }
 
 /* Fixed-width window: a hidden sizer holds every role, so the box is always as
@@ -123,15 +128,36 @@ h1 {
    highlights in Clerk's brand purple on hover/focus — the icon follows via
    currentColor. (The slot is aria-hidden; the link is mouse-only.) */
 .role-ticker__clerk {
-  color: inherit;
+  /* Compute the muted color from --text directly (like .role-ticker), NOT
+     `inherit`: on a theme toggle the inherited color is itself mid-transition, so
+     `inherit` + a transition makes the link chase that moving value and visibly
+     lag behind the rest of the title. Reading the token (which flips instantly)
+     and matching the 1s duration keeps the link and title in lockstep. */
+  color: color-mix(in srgb, var(--text) 70%, transparent);
   text-decoration: none;
-  transition: color 0.15s ease;
+  transition: color 1s ease;
 }
 .role-ticker__clerk:hover,
 .role-ticker__clerk:focus-visible {
   color: #6c47ff; /* Clerk brand purple */
   text-decoration: underline;
   text-underline-offset: 0.15em;
+  transition: color 0.15s ease; /* snap into the highlight on hover */
+}
+
+/* ── Staggered theme recolor ──────────────────────────────────────────────────
+   On a theme toggle the stack recolors top-down by importance: the nickname
+   first, the role title 0.25s later, then the icons at 0.5s. All fades are 1s, so
+   the icons switch from their 0.3s hover speed to 1s here for a uniform wave.
+   Scoped to html.theme-anim — added only for the duration of a toggle (see
+   applyTheme) — so these delays never lag hovers. The nickname (h1) is tier 0:
+   its existing 1s fade with no delay. */
+html.theme-anim .role-ticker,
+html.theme-anim .role-ticker__clerk {
+  transition-delay: 0.25s;
+}
+html.theme-anim .social-links a {
+  transition: color 1s ease 0.5s;
 }
 
 /* Visually hidden, still read by screen readers (the full role list). */

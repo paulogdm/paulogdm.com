@@ -155,12 +155,32 @@
   // message, so applyTheme() here can't loop.
   let themeChannel = null;
 
+  // Theme recolor cascades top-down: nickname, then role title, then icons. The
+  // per-tier transition-delays live behind .theme-anim (styles.css) so they apply
+  // only during a toggle and never lag hovers. Window = last tier's start (0.5s)
+  // + its 1s fade, plus a small buffer.
+  let themeAnimTimer = 0;
+  const THEME_ANIM_MS = 1600;
+
   // Single code path for "make the UI reflect `dark`": document classes (which
   // the canvas renderer reads live) + reactive state (the toggle icon).
   function applyTheme(dark) {
     lights = dark;
-    document.documentElement.classList.toggle("theme-dark", dark);
-    document.documentElement.classList.toggle("theme-light", !dark);
+    const html = document.documentElement;
+    if (html.classList.contains("theme-anim")) {
+      // Re-toggled mid-cascade: drop the stagger and recolor straight back.
+      // Otherwise the transition-delay would hold each tier at its current
+      // mid-fade tint (e.g. a gray icon) for the delay before reversing.
+      clearTimeout(themeAnimTimer);
+      html.classList.remove("theme-anim");
+    } else {
+      // Idle toggle: arm the cascade before flipping the theme class (which is
+      // what changes --text and starts the transitions), then disarm when done.
+      html.classList.add("theme-anim");
+      themeAnimTimer = setTimeout(() => html.classList.remove("theme-anim"), THEME_ANIM_MS);
+    }
+    html.classList.toggle("theme-dark", dark);
+    html.classList.toggle("theme-light", !dark);
   }
 
   function changeBackground() {
@@ -255,6 +275,7 @@
     return () => {
       window.removeEventListener("keydown", onKey);
       clearTimeout(initialTimer);
+      clearTimeout(themeAnimTimer);
       clearInterval(roleTimer);
       themeChannel?.close();
       themeChannel = null;
