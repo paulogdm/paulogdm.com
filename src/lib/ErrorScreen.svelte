@@ -29,7 +29,7 @@
 <style>
   .err {
     /* Force Inter for everything here. The headline is an <h1>, and the global
-       stylesheet sets h1 { font-family: 'Syne' } — an element rule that beats
+       stylesheet sets h1 { font-family: 'Spectral' } — an element rule that beats
        inheritance — so .headline below also sets it explicitly to win on
        specificity. */
     font-family: "Inter Variable", sans-serif;
@@ -50,7 +50,7 @@
   }
 
   .headline {
-    font-family: "Inter Variable", sans-serif; /* override global h1 { Syne } */
+    font-family: "Inter Variable", sans-serif; /* override global h1 { Spectral } */
     font-weight: 500;
     font-size: clamp(1.35rem, 5vw, 2rem);
     margin: 0.6rem 0 0;

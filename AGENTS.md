@@ -25,8 +25,8 @@ rendered, no backend.
 
 ## Conventions & gotchas
 
-- **Type system.** Display face is **Syne** (used on `h1`); body is **Inter Variable**; **Geist** is
-  also self-hosted and available. Root font-size is fluid: `clamp(13px, 1.4vw, 16px)`, so size
+- **Type system.** Display face is **Spectral** (a serif, weight `400`, used on `h1`); body is
+  **Inter Variable**; **Geist** is also self-hosted and available. Root font-size is fluid: `clamp(13px, 1.4vw, 16px)`, so size
   everything in `rem` and it scales.
 - **Color tokens** live in `:root` / `html.theme-dark` / `html.theme-light` in `styles.css`. Accent
   is `--accent: #FF6600`. Use the CSS variables, don't hardcode.
