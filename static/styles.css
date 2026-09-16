@@ -13,16 +13,22 @@
   --accent-moon: #0070f3;
 }
 
+/* --accent-ink: the accent when it has to be read as text. #FF6600 clears AA on
+   black but is only ~2.9:1 on white, so light mode deepens it (~4.9:1). */
 html.theme-dark {
   --bg: #000000;
   --text: #ffffff;
   --shadow-color: rgba(255, 255, 255, 0.65);
+  --accent-ink: var(--accent);
+  color-scheme: dark;
 }
 
 html.theme-light {
   --bg: #ffffff;
   --text: #000000;
   --shadow-color: rgba(0, 0, 0, 0.4);
+  --accent-ink: #c44900;
+  color-scheme: light;
 }
 
 /* Fluid root: all rem-based sizes (spacing, icons, timeline labels) scale
@@ -58,6 +64,17 @@ h1 {
   margin-top: 0;
   margin-bottom: 0.5rem;
   line-height: 1.7em;
+}
+
+/* Each icon carries its old 0.5rem side margins as padding instead, so the
+   visual rhythm is unchanged but the hit area grows from the bare glyph (~19px)
+   to ~33px. The negative block margin keeps the row's line height as it was. */
+.social-links a {
+  display: inline-flex;
+  vertical-align: middle;
+  padding: 0.5rem;
+  margin: -0.5rem 0;
+  border-radius: 0.5rem;
 }
 
 /* ── Role ticker (rolling subtitle under the name) ──────────── */
@@ -121,7 +138,9 @@ h1 {
   width: 1em;
   height: 1em;
   vertical-align: -0.125em;
-  margin: 0 0.05em 0 0.2em;
+  /* The title already has a space before the mark, so no left margin; the right
+     gap echoes the timeline's glyph-to-word spacing. */
+  margin: 0 0.22em 0 0;
 }
 
 /* Clerk link in the initial title. Sits inline with the muted title text, then
@@ -183,6 +202,56 @@ a:hover {
   color: var(--accent);
 }
 
+/* One focus ring for every keyboard-reachable control, drawn in the accent. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--accent);
+  color: #000;
+}
+
+a,
+button,
+.tl-spark-hit {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Page composition ───────────────────────────────────────── */
+/* The toggle stays pinned top-left; any spare viewport height is split 1:2 above
+   and below the [hero + timeline] group, which lands it on the viewport's visual
+   center instead of hugging the top. Spare space only — on short screens the
+   spacers collapse to 0 and the page flows exactly as before. */
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100svh;
+}
+.page::before,
+.page::after {
+  content: "";
+}
+.page::before {
+  order: 1;
+  flex: 1 1 0;
+}
+.page > .page-hero {
+  order: 2;
+  /* Flex items don't collapse margins: without this, the hero's 1.5rem bottom
+     would stack on the inner block's 3rem instead of collapsing into it. */
+  margin-bottom: 0;
+}
+.page > .tl-section {
+  order: 3;
+}
+.page::after {
+  order: 4;
+  flex: 2 1 0;
+}
+
 /* ── Bootstrap replacements ─────────────────────────────────── */
 .container {
   width: 100%;
@@ -218,9 +287,6 @@ a:hover {
 .py-4 {
   padding-top: 1.5rem;
   padding-bottom: 1.5rem;
-}
-.mt-3 {
-  margin-top: 1rem;
 }
 .my-4 {
   margin-top: 1.5rem;
@@ -262,19 +328,12 @@ a:hover {
 
 /* ── Theme toggle button ────────────────────────────────────── */
 .lightbulb {
+  display: inline-flex;
   background: none;
   border: none;
+  border-radius: 0.5rem;
   color: inherit;
   cursor: pointer;
-}
-
-.lightbulb:focus {
-  outline: none;
-}
-
-.lightbulb:focus-visible {
-  outline: 2px solid currentColor;
-  border-radius: 4px;
 }
 
 /* Sun (dark mode) → yellow; Moon (light mode) → blue */
@@ -361,7 +420,7 @@ a:hover {
   font-size: 1rem;
   letter-spacing: 0.06em;
   white-space: nowrap;
-  color: var(--accent);
+  color: var(--accent-ink);
   pointer-events: none;
   transition:
     opacity 0.2s ease,
@@ -378,7 +437,7 @@ a:hover {
    hover state (tenure badge, recolour, cross-fade, timeline cue) for as long as
    the wave lives, so a Clerk/Vercel wave reveals the same detail as a hover. */
 .tl-company--lit {
-  color: var(--accent) !important;
+  color: var(--accent-ink) !important;
 }
 
 /* When any company is hovered, fade out the others */
@@ -442,12 +501,25 @@ a:hover {
   right: 0;
 }
 
+/* Invisible 1.5rem hit target centered on the track's left end ("now"). The
+   spark inside is what you see; this is what you click. */
+.tl-spark-hit {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 1.5rem;
+  height: 1.5rem;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
 /* The "now" spark — small orange orb with double-halo */
 .tl-spark {
   position: absolute;
-  left: -2px;
+  left: 50%;
   top: 50%;
-  transform: translateY(-50%);
+  transform: translate(-50%, -50%);
   width: 4px;
   height: 4px;
   border-radius: 50%;
@@ -458,8 +530,11 @@ a:hover {
   transition: box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.tl-spark:hover {
-  cursor: pointer;
+/* Hovering the hit area brightens the spark — the one hint that it's clickable. */
+.tl-spark-hit:hover .tl-spark {
+  box-shadow:
+    0 0 8px 3px var(--accent),
+    0 0 22px 10px var(--accent-glow);
 }
 
 /* Sonar wave easter egg canvas */
@@ -507,7 +582,8 @@ a:hover {
   position: absolute;
   font-size: 0.8rem;
   letter-spacing: 0.07em;
-  opacity: 0.3;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.55;
   transform: translateX(-50%);
 }
 
@@ -515,7 +591,7 @@ a:hover {
   left: 0;
   transform: none;
   opacity: 0.8;
-  color: var(--accent);
+  color: var(--accent-ink);
   transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -615,6 +691,11 @@ a:hover {
   .tl-spark::before,
   .tl-spark::after {
     animation: none;
+  }
+
+  /* The sonar is disabled under reduced motion, so don't advertise a click. */
+  .tl-spark-hit {
+    cursor: default;
   }
 
   /* State changes still happen (hover reveals, theme recolour) — but instantly,
