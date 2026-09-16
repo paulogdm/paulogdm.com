@@ -1047,12 +1047,12 @@
   {@html `<script type="application/ld+json">${personJsonLd}</script>`}
 </svelte:head>
 
-<div class="container">
+<div class="container page">
   <div class="px-4 py-4">
     <button
       onclick={changeBackground}
       class="lightbulb animated fadeIn p-2 {lights ? 'mode-dark' : 'mode-light'}"
-      aria-label="Toggle light/dark mode"
+      aria-label={lights ? "Switch to light mode" : "Switch to dark mode"}
     >
       {#key lights}
         <span class="icon-swap">
@@ -1062,7 +1062,7 @@
     </button>
   </div>
 
-  <div class="my-4 text-center">
+  <div class="page-hero my-4 text-center">
     <div
       class="me-size animated fadeIn"
       class:me-size--dragging={isDragging}
@@ -1131,14 +1131,12 @@
 
       <nav class="social-links" aria-label="Social media and contact links">
         <a
-          class="mx-2"
           href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#109;&#101;&#64;&#112;&#97;&#117;&#108;&#111;&#103;&#100;&#109;&#46;&#99;&#111;&#109;"
           aria-label="Email"
         >
           <Icon icon={mailIcon} width="1.33em" />
         </a>
         <a
-          class="mx-2"
           href="https://x.com/paulogdm"
           target="_blank"
           rel="noopener noreferrer"
@@ -1147,7 +1145,6 @@
           <Icon icon={xIcon} width="1.33em" />
         </a>
         <a
-          class="mx-2"
           href="https://www.linkedin.com/in/paulogdm/"
           target="_blank"
           rel="noopener noreferrer"
@@ -1156,7 +1153,6 @@
           <Icon icon={linkedinIcon} width="1.33em" />
         </a>
         <a
-          class="mx-2"
           href="https://github.com/paulogdm"
           target="_blank"
           rel="noopener noreferrer"
@@ -1165,7 +1161,6 @@
           <Icon icon={githubIcon} width="1.33em" />
         </a>
         <a
-          class="mx-2"
           href="https://stackoverflow.com/users/2665655/paulogdm"
           target="_blank"
           rel="noopener noreferrer"
@@ -1174,7 +1169,6 @@
           <Icon icon={stackoverflowIcon} width="1.33em" />
         </a>
         <a
-          class="mx-2"
           href="https://cal.com/paulogdm/15min"
           target="_blank"
           rel="noopener noreferrer"
@@ -1213,7 +1207,8 @@
         </div>
       </div>
       <div class="tl-track" aria-hidden="true">
-        <span class="tl-spark" onclick={launchSonar}></span>
+        <!-- 24px hit area around the 4px spark, so the sonar is findable by pointer -->
+        <span class="tl-spark-hit" onclick={launchSonar}><span class="tl-spark"></span></span>
         <span class="tl-vercel-seg" style="left: {vercelLeft}%; width: {vercelWidth}%"></span>
       </div>
       <div class="tl-years" aria-hidden="true">
