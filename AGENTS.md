@@ -9,7 +9,9 @@ rendered, no backend.
 - **`@sveltejs/adapter-static`** — fully prerendered, deployed as static files.
 - **pnpm** (`pnpm-lock.yaml`). Install with `pnpm install`.
 - Scripts: `pnpm dev` · `pnpm build` · `pnpm preview` (all thin wrappers over Vite).
-- **Main branch is `master`** (not `main`). Branch off `master` for new work.
+- **Main branch is `main`.** Branch off `main` for new work.
+- SvelteKit config (adapter, CSP) lives in `vite.config.js`; `svelte.config.js` is no longer used.
+  `vercel.json` sets cache headers and `frame-ancestors`.
 
 ## Where things live
 
@@ -31,8 +33,9 @@ rendered, no backend.
 - **Color tokens** live in `:root` / `html.theme-dark` / `html.theme-light` in `styles.css`. Accent
   is `--accent: #FF6600`. Use the CSS variables, don't hardcode.
 - **Theme** = light/dark via a `lights` cookie. The blocking script in `app.html` applies
-  `theme-dark`/`theme-light` to `<html>` before paint; `+page.svelte` syncs its reactive state from
-  that class on mount. Toggles broadcast over a `BroadcastChannel('theme')` for cross-tab sync.
+  `theme-dark`/`theme-light` to `<html>` before paint, and CSS shows the matching toggle icon;
+  `+page.svelte` syncs its state from that class on mount. Without a cookie, the page follows OS
+  theme changes. Toggles broadcast over a `BroadcastChannel('theme')` for cross-tab sync.
   Canvas effects that depend on theme read the class **live** so a mid-animation toggle recolors.
 - **Easter-egg renderer** (large block in `+page.svelte`): ONE canvas + ONE `requestAnimationFrame`
   loop driving an `effects[]` array. Triggers: click the timeline spark, type `sonar` / `matrix` /
@@ -41,5 +44,5 @@ rendered, no backend.
 - **Accessibility floor — keep it.** All motion is gated on `prefersReducedMotion()`; keep visible
   keyboard focus and respect reduced motion in anything new.
 - **Career timeline** at the bottom is computed from dates (`tlStart`, `tlNow`, `tlPct`). Tenure
-  dates are duplicated in the schema.org `Person` JSON-LD (`personJsonLd`) and in `static/agents.md`
-  — update all three together.
+  dates are duplicated in the section's `aria-label`, the `data-tenure` attributes, and
+  `static/agents.md` — update them together. The JSON-LD holds only the current title and employer.

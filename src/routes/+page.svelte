@@ -11,7 +11,7 @@
   import xIcon from "@iconify-icons/simple-icons/x";
   import stackoverflowIcon from "@iconify-icons/simple-icons/stackoverflow";
 
-  let lights = $state(false);
+  let lights = false;
   let sparkEl = null; // cached after mount — avoids repeated querySelector calls
 
   // Accessibility: users who request reduced motion get no canvas easter eggs
@@ -162,11 +162,14 @@
   let themeAnimTimer = 0;
   const THEME_ANIM_MS = 1400;
 
-  // Single code path for "make the UI reflect `dark`": document classes (which
-  // the canvas renderer reads live) + reactive state (the toggle icon).
+  // Single code path for "make the UI reflect `dark`": the document classes, which
+  // the canvas renderer reads live and the toggle's icon and label follow in CSS.
+  // theme-toggled stays on after the first change, so the icon swap animates on
+  // toggles but not on load.
   function applyTheme(dark) {
     lights = dark;
     const html = document.documentElement;
+    html.classList.add("theme-toggled");
     if (html.classList.contains("theme-anim")) {
       // Re-toggled mid-cascade: drop the stagger and recolor straight back.
       // Otherwise the transition-delay would hold each tier at its current
@@ -197,12 +200,19 @@
 
     // The blocking script in app.html already resolved the theme (cookie →
     // system preference) and applied the class before first paint. Sync our
-    // reactive state from that single source of truth rather than re-deriving it.
+    // state from that single source of truth rather than re-deriving it.
     lights = document.documentElement.classList.contains("theme-dark");
 
     // Subscribe to theme toggles from other tabs/windows of this origin.
     themeChannel = new BroadcastChannel("theme");
     themeChannel.onmessage = (e) => applyTheme(e.data);
+
+    // Follow OS theme changes until the visitor picks a theme (which sets the cookie).
+    const osTheme = window.matchMedia("(prefers-color-scheme: dark)");
+    function onOsTheme(e) {
+      if (!/(^| )lights=/.test(document.cookie)) applyTheme(e.matches);
+    }
+    osTheme.addEventListener("change", onOsTheme);
 
     let keyBuf = "";
     const KONAMI_SEQ = [
@@ -258,22 +268,53 @@
     window.addEventListener("keydown", onKey);
 
     // The initial title (INITIAL_ROLE_TEXT + Clerk mark) fades in with the name
-    // and holds for INITIAL_DWELL; only then do we hand off to the random
-    // rotation — the first roll fades in immediately, then the timer rolls
-    // through the rest. Reduced-motion users keep the static initial title and no
-    // cycling.
+    // and holds for INITIAL_DWELL of visible time, so a background tab still opens
+    // on the real title; only then do we hand off to the random rotation — the
+    // first roll fades in immediately, then the timer rolls through the rest. The
+    // hand-off also waits while the Clerk link has keyboard focus, since removing
+    // it would drop that focus. Reduced-motion users keep the static initial title
+    // and no cycling.
     let roleTimer = 0;
     let initialTimer = 0;
+    let initialLeft = INITIAL_DWELL;
+    let initialResumedAt = 0;
+
+    function resumeInitial() {
+      initialResumedAt = performance.now();
+      initialTimer = setTimeout(endInitial, initialLeft);
+    }
+
+    function endInitial() {
+      if (document.activeElement?.closest(".role-ticker")) {
+        initialLeft = ROLE_DWELL;
+        resumeInitial();
+        return;
+      }
+      document.removeEventListener("visibilitychange", onInitialVisibility);
+      showingInitial = false;
+      rollToNextRole();
+      roleTimer = setInterval(rollToNextRole, ROLE_DWELL);
+    }
+
+    function onInitialVisibility() {
+      if (!document.hidden) {
+        if (!initialTimer) resumeInitial();
+      } else if (initialTimer) {
+        clearTimeout(initialTimer);
+        initialTimer = 0;
+        initialLeft -= performance.now() - initialResumedAt;
+      }
+    }
+
     if (!prefersReducedMotion()) {
-      initialTimer = setTimeout(() => {
-        showingInitial = false;
-        rollToNextRole();
-        roleTimer = setInterval(rollToNextRole, ROLE_DWELL);
-      }, INITIAL_DWELL);
+      document.addEventListener("visibilitychange", onInitialVisibility);
+      if (!document.hidden) resumeInitial();
     }
 
     return () => {
       window.removeEventListener("keydown", onKey);
+      osTheme.removeEventListener("change", onOsTheme);
+      document.removeEventListener("visibilitychange", onInitialVisibility);
       clearTimeout(initialTimer);
       clearTimeout(themeAnimTimer);
       clearInterval(roleTimer);
@@ -1009,7 +1050,9 @@
   // schema.org Person — lets search engines render paulogdm as an entity and
   // ties the social links together via sameAs. Emitted as a raw <script> in
   // <svelte:head> through {@html} (a literal <script> tag there is captured by
-  // the compiler as a component script instead of being rendered as markup).
+  // the compiler as a component script instead of being rendered as markup). The
+  // tag is built here, not in the markup, because oxlint treats any <script> in
+  // the markup as a second block of JS and fails to parse it.
   const personJsonLd = JSON.stringify({
     "@context": "https://schema.org",
     "@type": "Person",
@@ -1031,6 +1074,7 @@
       "https://stackoverflow.com/users/2665655/paulogdm",
     ],
   });
+  const personJsonLdTag = `<script type="application/ld+json">${personJsonLd}</` + "script>";
 </script>
 
 <svelte:head>
@@ -1044,180 +1088,175 @@
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:site" content="@paulogdm" />
-  {@html `<script type="application/ld+json">${personJsonLd}</script>`}
+  {@html personJsonLdTag}
 </svelte:head>
 
 <div class="container page">
   <div class="px-4 py-4">
-    <button
-      onclick={changeBackground}
-      class="lightbulb animated fadeIn p-2 {lights ? 'mode-dark' : 'mode-light'}"
-      aria-label={lights ? "Switch to light mode" : "Switch to dark mode"}
-    >
-      {#key lights}
-        <span class="icon-swap">
-          <Icon icon={lights ? sunIcon : moonIcon} width="2em" />
-        </span>
-      {/key}
+    <!-- Both icons are prerendered and CSS shows the one matching the theme class,
+         so the icon and its accessible name are right before hydration. -->
+    <button onclick={changeBackground} class="lightbulb animated fadeIn p-2">
+      <span class="theme-icon theme-icon--sun">
+        <Icon icon={sunIcon} width="2em" />
+        <span class="sr-only">Switch to light mode</span>
+      </span>
+      <span class="theme-icon theme-icon--moon">
+        <Icon icon={moonIcon} width="2em" />
+        <span class="sr-only">Switch to dark mode</span>
+      </span>
     </button>
   </div>
 
-  <div class="page-hero my-4 text-center">
-    <div
-      class="me-size animated fadeIn"
-      class:me-size--dragging={isDragging}
-      style="animation-delay: 0.1s"
-    >
-      <img
-        src="/assets/me.jpg"
-        class="mx-auto d-block me-photo"
-        alt="paulogdm"
-        width="500"
-        height="500"
-        draggable="false"
-        fetchpriority="high"
-        style={photoStyle}
-        onpointerdown={onPhotoDragStart}
-        onpointermove={onPhotoMove}
-        onpointerup={onPhotoRelease}
-        onpointercancel={onPhotoRelease}
-      />
-    </div>
+  <main class="page-main">
+    <div class="page-hero my-4 text-center">
+      <div
+        class="me-size animated fadeIn"
+        class:me-size--dragging={isDragging}
+        style="animation-delay: 0.1s"
+      >
+        <img
+          src="/assets/me.jpg"
+          class="mx-auto d-block me-photo"
+          alt="paulogdm"
+          width="500"
+          height="500"
+          draggable="false"
+          fetchpriority="high"
+          style={photoStyle}
+          onpointerdown={onPhotoDragStart}
+          onpointermove={onPhotoMove}
+          onpointerup={onPhotoRelease}
+          onpointercancel={onPhotoRelease}
+        />
+      </div>
 
-    <div class="my-5 py-2 animated fadeIn" style="animation-delay: 0.25s">
-      <h1>paulogdm</h1>
+      <div class="my-5 py-2 animated fadeIn" style="animation-delay: 0.25s">
+        <h1>paulogdm</h1>
 
-      <!-- The Clerk mark: brand glyph (1em, follows the text) + word. Reused below. -->
-      {#snippet clerkMark()}<svg
-          class="role-ticker__clerk-icon"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-          ><path
-            d="m21.47 20.829-2.881-2.881a.572.572 0 0 0-.7-.084 6.854 6.854 0 0 1-7.081 0 .576.576 0 0 0-.7.084l-2.881 2.881a.576.576 0 0 0-.103.69.57.57 0 0 0 .166.186 12 12 0 0 0 14.113 0 .58.58 0 0 0 .239-.423.576.576 0 0 0-.172-.453Zm.002-17.668-2.88 2.88a.569.569 0 0 1-.701.084A6.857 6.857 0 0 0 8.724 8.08a6.862 6.862 0 0 0-1.222 3.692 6.86 6.86 0 0 0 .978 3.764.573.573 0 0 1-.083.699l-2.881 2.88a.567.567 0 0 1-.864-.063A11.993 11.993 0 0 1 6.771 2.7a11.99 11.99 0 0 1 14.637-.405.566.566 0 0 1 .232.418.57.57 0 0 1-.168.448Zm-7.118 12.261a3.427 3.427 0 1 0 0-6.854 3.427 3.427 0 0 0 0 6.854Z"
-          /></svg
-        >Clerk{/snippet}
+        <!-- The Clerk mark: brand glyph (1em, follows the text) + word. Reused below. -->
+        {#snippet clerkMark()}<svg
+            class="role-ticker__clerk-icon"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+            ><path
+              d="m21.47 20.829-2.881-2.881a.572.572 0 0 0-.7-.084 6.854 6.854 0 0 1-7.081 0 .576.576 0 0 0-.7.084l-2.881 2.881a.576.576 0 0 0-.103.69.57.57 0 0 0 .166.186 12 12 0 0 0 14.113 0 .58.58 0 0 0 .239-.423.576.576 0 0 0-.172-.453Zm.002-17.668-2.88 2.88a.569.569 0 0 1-.701.084A6.857 6.857 0 0 0 8.724 8.08a6.862 6.862 0 0 0-1.222 3.692 6.86 6.86 0 0 0 .978 3.764.573.573 0 0 1-.083.699l-2.881 2.88a.567.567 0 0 1-.864-.063A11.993 11.993 0 0 1 6.771 2.7a11.99 11.99 0 0 1 14.637-.405.566.566 0 0 1 .232.418.57.57 0 0 1-.168.448Zm-7.118 12.261a3.427 3.427 0 1 0 0-6.854 3.427 3.427 0 0 0 0 6.854Z"
+            /></svg
+          >Clerk{/snippet}
 
-      <!-- The initial title. `linked` makes Clerk a link to clerk.com in the live
-           role; the sizer renders plain text (it only measures width). The slot is
-           aria-hidden, so the link is mouse-only (tabindex=-1) — the accessible
-           title is the sibling .sr-only text. -->
-      {#snippet clerkTitle(linked)}Sr. Technical Account Manager at {#if linked}<a
-            class="role-ticker__clerk"
-            href="https://clerk.com"
+        <!-- The initial title. `linked` makes Clerk a link to clerk.com in the live
+           role; the sizer renders plain text (it only measures width). -->
+        {#snippet clerkTitle(linked)}Sr. Technical Account Manager at {#if linked}<a
+              class="role-ticker__clerk"
+              href="https://clerk.com"
+              target="_blank"
+              rel="noopener noreferrer">{@render clerkMark()}</a
+            >{:else}{@render clerkMark()}{/if}{/snippet}
+
+        <!-- Assistive tech only ever gets the real title: the live one while it shows,
+           then the .sr-only copy, with the decorative rotation hidden. -->
+        <p class="role-ticker">
+          {#if !showingInitial}<span class="sr-only">{INITIAL_ROLE_TEXT}</span>{/if}
+          <span class="role-ticker__slot">
+            <span class="role-ticker__sizer" aria-hidden="true">
+              <span>{@render clerkTitle(false)}</span>
+              {#each ALL_ROLES as r}<span>{r}</span>{/each}
+            </span>
+            {#key showingInitial ? "__initial__" : role}
+              <span
+                class="role-ticker__role"
+                aria-hidden={showingInitial ? undefined : "true"}
+                in:fade={{ duration: FADE_IN, delay: FADE_OUT }}
+                out:fade={{ duration: FADE_OUT }}
+                >{#if showingInitial}{@render clerkTitle(true)}{:else}{role}{/if}</span
+              >
+            {/key}
+          </span>
+        </p>
+
+        <nav class="social-links" aria-label="Social media and contact links">
+          <a href="mailto:me@paulogdm.com" aria-label="Email">
+            <Icon icon={mailIcon} width="1.33em" />
+          </a>
+          <a href="https://x.com/paulogdm" target="_blank" rel="noopener noreferrer" aria-label="X">
+            <Icon icon={xIcon} width="1.33em" />
+          </a>
+          <a
+            href="https://www.linkedin.com/in/paulogdm/"
             target="_blank"
             rel="noopener noreferrer"
-            tabindex="-1">{@render clerkMark()}</a
-          >{:else}{@render clerkMark()}{/if}{/snippet}
-
-      <p class="role-ticker">
-        <span class="sr-only">{[INITIAL_ROLE_TEXT, ...ALL_ROLES].join(", ")}</span>
-        <span class="role-ticker__slot" aria-hidden="true">
-          <span class="role-ticker__sizer">
-            <span>{@render clerkTitle(false)}</span>
-            {#each ALL_ROLES as r}<span>{r}</span>{/each}
-          </span>
-          {#key showingInitial ? "__initial__" : role}
-            <span
-              class="role-ticker__role"
-              in:fade={{ duration: FADE_IN, delay: FADE_OUT }}
-              out:fade={{ duration: FADE_OUT }}
-              >{#if showingInitial}{@render clerkTitle(true)}{:else}{role}{/if}</span
-            >
-          {/key}
-        </span>
-      </p>
-
-      <nav class="social-links" aria-label="Social media and contact links">
-        <a
-          href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#109;&#101;&#64;&#112;&#97;&#117;&#108;&#111;&#103;&#100;&#109;&#46;&#99;&#111;&#109;"
-          aria-label="Email"
-        >
-          <Icon icon={mailIcon} width="1.33em" />
-        </a>
-        <a
-          href="https://x.com/paulogdm"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="X"
-        >
-          <Icon icon={xIcon} width="1.33em" />
-        </a>
-        <a
-          href="https://www.linkedin.com/in/paulogdm/"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="LinkedIn"
-        >
-          <Icon icon={linkedinIcon} width="1.33em" />
-        </a>
-        <a
-          href="https://github.com/paulogdm"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="GitHub"
-        >
-          <Icon icon={githubIcon} width="1.33em" />
-        </a>
-        <a
-          href="https://stackoverflow.com/users/2665655/paulogdm"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Stack Overflow"
-        >
-          <Icon icon={stackoverflowIcon} width="1.33em" />
-        </a>
-        <a
-          href="https://cal.com/paulogdm/15min"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Schedule a time using cal.com"
-        >
-          <Icon icon={calendarIcon} width="1.33em" />
-        </a>
-      </nav>
-    </div>
-  </div>
-
-  <section
-    class="tl-section animated fadeIn"
-    style="animation-delay: 0.45s"
-    aria-label="Career timeline: Vercel, November 2018 to February 2026. Clerk, June 2026 to now."
-  >
-    <div class="tl-wrap">
-      <div class="tl-labels" aria-hidden="true">
-        <div class="tl-company tl-clerk" data-tenure="now ← Jun '26">
-          <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="m21.47 20.829-2.881-2.881a.572.572 0 0 0-.7-.084 6.854 6.854 0 0 1-7.081 0 .576.576 0 0 0-.7.084l-2.881 2.881a.576.576 0 0 0-.103.69.57.57 0 0 0 .166.186 12 12 0 0 0 14.113 0 .58.58 0 0 0 .239-.423.576.576 0 0 0-.172-.453Zm.002-17.668-2.88 2.88a.569.569 0 0 1-.701.084A6.857 6.857 0 0 0 8.724 8.08a6.862 6.862 0 0 0-1.222 3.692 6.86 6.86 0 0 0 .978 3.764.573.573 0 0 1-.083.699l-2.881 2.88a.567.567 0 0 1-.864-.063A11.993 11.993 0 0 1 6.771 2.7a11.99 11.99 0 0 1 14.637-.405.566.566 0 0 1 .232.418.57.57 0 0 1-.168.448Zm-7.118 12.261a3.427 3.427 0 1 0 0-6.854 3.427 3.427 0 0 0 0 6.854Z"
-            />
-          </svg>
-          Clerk
-        </div>
-        <div
-          class="tl-company tl-vercel"
-          data-tenure="Feb '26 ← Nov '18"
-          style="left: {vercelLabelLeft}%"
-        >
-          <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-            <path d="m12 1.608 12 20.784H0Z" />
-          </svg>
-          Vercel
-        </div>
-      </div>
-      <div class="tl-track" aria-hidden="true">
-        <!-- 24px hit area around the 4px spark, so the sonar is findable by pointer -->
-        <span class="tl-spark-hit" onclick={launchSonar}><span class="tl-spark"></span></span>
-        <span class="tl-vercel-seg" style="left: {vercelLeft}%; width: {vercelWidth}%"></span>
-      </div>
-      <div class="tl-years" aria-hidden="true">
-        <span class="tl-yr tl-yr-now">now</span>
-        {#each tlYears as { label, left }}
-          <span class="tl-yr" style="left: {left}%">{label}</span>
-        {/each}
-        <span class="tl-yr tl-yr-end">'18</span>
+            aria-label="LinkedIn"
+          >
+            <Icon icon={linkedinIcon} width="1.33em" />
+          </a>
+          <a
+            href="https://github.com/paulogdm"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="GitHub"
+          >
+            <Icon icon={githubIcon} width="1.33em" />
+          </a>
+          <a
+            href="https://stackoverflow.com/users/2665655/paulogdm"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Stack Overflow"
+          >
+            <Icon icon={stackoverflowIcon} width="1.33em" />
+          </a>
+          <a
+            href="https://cal.com/paulogdm/15min"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Schedule a time using cal.com"
+          >
+            <Icon icon={calendarIcon} width="1.33em" />
+          </a>
+        </nav>
       </div>
     </div>
-  </section>
+
+    <section
+      class="tl-section animated fadeIn"
+      style="animation-delay: 0.45s"
+      aria-label="Career timeline: Vercel, November 2018 to February 2026. Clerk, June 2026 to now."
+    >
+      <div class="tl-wrap">
+        <div class="tl-labels" aria-hidden="true">
+          <div class="tl-company tl-clerk" data-tenure="now ← Jun '26">
+            <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="m21.47 20.829-2.881-2.881a.572.572 0 0 0-.7-.084 6.854 6.854 0 0 1-7.081 0 .576.576 0 0 0-.7.084l-2.881 2.881a.576.576 0 0 0-.103.69.57.57 0 0 0 .166.186 12 12 0 0 0 14.113 0 .58.58 0 0 0 .239-.423.576.576 0 0 0-.172-.453Zm.002-17.668-2.88 2.88a.569.569 0 0 1-.701.084A6.857 6.857 0 0 0 8.724 8.08a6.862 6.862 0 0 0-1.222 3.692 6.86 6.86 0 0 0 .978 3.764.573.573 0 0 1-.083.699l-2.881 2.88a.567.567 0 0 1-.864-.063A11.993 11.993 0 0 1 6.771 2.7a11.99 11.99 0 0 1 14.637-.405.566.566 0 0 1 .232.418.57.57 0 0 1-.168.448Zm-7.118 12.261a3.427 3.427 0 1 0 0-6.854 3.427 3.427 0 0 0 0 6.854Z"
+              />
+            </svg>
+            Clerk
+          </div>
+          <div
+            class="tl-company tl-vercel"
+            data-tenure="Feb '26 ← Nov '18"
+            style="left: {vercelLabelLeft}%"
+          >
+            <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="m12 1.608 12 20.784H0Z" />
+            </svg>
+            Vercel
+          </div>
+        </div>
+        <div class="tl-track" aria-hidden="true">
+          <!-- 24px hit area around the 4px spark, so the sonar is findable by pointer -->
+          <span class="tl-spark-hit" onclick={launchSonar}><span class="tl-spark"></span></span>
+          <span class="tl-vercel-seg" style="left: {vercelLeft}%; width: {vercelWidth}%"></span>
+        </div>
+        <div class="tl-years" aria-hidden="true">
+          <span class="tl-yr tl-yr-now">now</span>
+          {#each tlYears as { label, left }}
+            <span class="tl-yr" style="left: {left}%">{label}</span>
+          {/each}
+          <span class="tl-yr tl-yr-end">'18</span>
+        </div>
+      </div>
+    </section>
+  </main>
 </div>
