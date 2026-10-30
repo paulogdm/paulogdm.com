@@ -2,5 +2,6 @@
   "$schema": "./node_modules/oxfmt/configuration_schema.json",
   "tabWidth": 2,
   "useTabs": false,
-  "svelte": true
+  "svelte": true,
+  "ignorePatterns": [".claude/settings.local.json"]
 }
