@@ -21,7 +21,7 @@
   },
   "devDependencies": {
     "@sveltejs/adapter-static": "^4.0.0",
-    "@sveltejs/kit": "^3.1.0",
+    "@sveltejs/kit": "^3.1.1",
     "oxfmt": "^0.75.0",
     "oxlint": "^1.90.0",
     "svelte": "^5.57.3",
